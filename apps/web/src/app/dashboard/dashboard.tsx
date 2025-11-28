@@ -1,10 +1,258 @@
 "use client";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@lib/auth-client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Play,
+  Plus,
+  BookOpen,
+  Clock,
+  CheckCircle2,
+  TrendingUp,
+} from "lucide-react";
+
+// Temporary types - will be replaced with real database types later
+interface Deck {
+  id: string;
+  name: string;
+  dueCount: number;
+  newCount: number;
+  learnCount: number;
+  totalCards: number;
+}
+
+interface StudyStats {
+  cardsDue: number;
+  newCards: number;
+  reviewCards: number;
+  studyTimeToday: number; // in minutes
+  cardsStudiedToday: number;
+  streak: number;
+}
 
 export default function Dashboard({
-	session,
+  session,
 }: {
-	session: typeof authClient.$Infer.Session;
+  session: typeof authClient.$Infer.Session;
 }) {
-	return <></>;
+  // TODO: Replace with real data fetching once deck/card schema is implemented
+  const studyStats: StudyStats = {
+    cardsDue: 0,
+    newCards: 0,
+    reviewCards: 0,
+    studyTimeToday: 0,
+    cardsStudiedToday: 0,
+    streak: 0,
+  };
+
+  const decks: Deck[] = [];
+
+  const totalDue = studyStats.cardsDue + studyStats.newCards;
+
+  return (
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">
+          Welcome back, {session.user.name}!
+        </h1>
+        <p className="text-muted-foreground">Ready to continue your studies?</p>
+      </div>
+
+      {/* Study Now Section */}
+      <Card className="bg-primary text-primary-foreground border-primary">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Study Now</h2>
+              <p className="text-primary-foreground/80 mb-4">
+                {totalDue > 0
+                  ? `You have ${totalDue} card${
+                      totalDue === 1 ? "" : "s"
+                    } due for review`
+                  : "No cards due. Great job!"}
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="bg-white text-primary hover:bg-white/90"
+                  disabled={totalDue === 0}
+                >
+                  <Play className="size-5 mr-2" />
+                  {totalDue > 0 ? `Study ${totalDue} Cards` : "No Cards Due"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                >
+                  <Plus className="size-5 mr-2" />
+                  Create Deck
+                </Button>
+              </div>
+            </div>
+            {totalDue > 0 && (
+              <div className="hidden md:flex items-center justify-center size-32 rounded-full border-4 border-primary-foreground/20">
+                <span className="text-4xl font-bold">{totalDue}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Statistics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Cards Due</CardTitle>
+            <BookOpen className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{studyStats.cardsDue}</div>
+            <p className="text-xs text-muted-foreground">
+              {studyStats.newCards} new, {studyStats.reviewCards} review
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Study Time Today
+            </CardTitle>
+            <Clock className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {studyStats.studyTimeToday}m
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {studyStats.cardsStudiedToday} cards studied
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Current Streak
+            </CardTitle>
+            <TrendingUp className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{studyStats.streak}</div>
+            <p className="text-xs text-muted-foreground">days in a row</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Decks</CardTitle>
+            <CheckCircle2 className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{decks.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {decks.reduce((acc, deck) => acc + deck.totalCards, 0)} total
+              cards
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Decks Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Your Decks</CardTitle>
+                  <CardDescription>
+                    Manage and study your flashcard decks
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm">
+                  <Plus className="size-4 mr-2" />
+                  New Deck
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {decks.length === 0 ? (
+                <div className="text-center py-12">
+                  <BookOpen className="size-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No decks yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Create your first deck to start studying
+                  </p>
+                  <Button>
+                    <Plus className="size-4 mr-2" />
+                    Create Your First Deck
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {decks.map((deck) => (
+                    <div
+                      key={deck.id}
+                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-1">{deck.name}</h3>
+                        <div className="flex gap-4 text-sm text-muted-foreground">
+                          <span>{deck.dueCount} due</span>
+                          <span>{deck.newCount} new</span>
+                          <span>{deck.totalCards} total</span>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline">
+                        Study
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity / Tips */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Study Tips</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="p-3 rounded-lg bg-accent/50">
+                <p className="font-medium mb-1">💡 Daily Practice</p>
+                <p className="text-muted-foreground">
+                  Study a little every day for better retention than cramming.
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-accent/50">
+                <p className="font-medium mb-1">📚 Active Recall</p>
+                <p className="text-muted-foreground">
+                  Try to recall the answer before flipping the card.
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-accent/50">
+                <p className="font-medium mb-1">⏱️ Spaced Repetition</p>
+                <p className="text-muted-foreground">
+                  Cards will appear more frequently until you master them.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 }

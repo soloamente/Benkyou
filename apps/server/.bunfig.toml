@@ -1,0 +1,8 @@
+# Bun configuration for server
+# Note: --hot only watches files in the current project directory
+# Workspace packages (auth, db) are linked and changes will be picked up on module reload
+# The warnings about files not being watched are expected and can be ignored
+
+[install]
+linker = "isolated"
+

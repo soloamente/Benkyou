@@ -1,0 +1,37 @@
+{
+  "name": "@benkyou/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./schema": {
+      "default": "./src/schema.ts"
+    },
+    "./drizzle": {
+      "default": "./src/drizzle.ts"
+    }
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.36.4",
+    "postgres": "^3.4.5",
+    "@supabase/supabase-js": "^2.47.10",
+    "dotenv": "catalog:"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.1",
+    "@types/pg": "^8.11.10",
+    "@benkyou/config": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
