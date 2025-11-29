@@ -36,7 +36,7 @@ export default function SignInForm({
             // Error handling can be added here if needed
             console.error(error.error.message || error.error.statusText);
           },
-        }
+        },
       );
     },
     validators: {
@@ -56,9 +56,9 @@ export default function SignInForm({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="mx-auto w-full mt-10 max-w-md p-6"
+      className="mx-auto w-full mt-10 max-w-sm p-6"
     >
-      <h1 className="mb-6 text-center text-3xl font-bold">Welcome Back</h1>
+      <h1 className="mb-10 text-center text-3xl font-semibold">Welcome Back</h1>
 
       <form
         onSubmit={(e) => {
@@ -86,7 +86,7 @@ export default function SignInForm({
                   type="email"
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  placeholder="email@example.com"
+                  placeholder="jane@example.com"
                   className="bg-background placeholder:text-muted-foreground leading-none w-full px-3.75 py-3.25 rounded-2xl font-medium transition-colors focus:outline-none "
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     field.handleChange(e.target.value)
@@ -125,10 +125,7 @@ export default function SignInForm({
           <form.Field
             name="password"
             validators={{
-              onChange: z
-                .string()
-                .min(1, "Password is required")
-                .min(8, "Password must be at least 8 characters"),
+              onChange: z.string().min(1, "Password is required"),
             }}
           >
             {(field) => (
@@ -139,7 +136,7 @@ export default function SignInForm({
                   type="password"
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  placeholder="password"
+                  placeholder="jane123"
                   className="bg-background placeholder:text-muted-foreground leading-none w-full px-3.75 py-3.25 rounded-2xl font-medium transition-colors focus:outline-none "
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     field.handleChange(e.target.value)
@@ -175,53 +172,57 @@ export default function SignInForm({
         </div>
 
         <form.Subscribe>
-          {(state) => (
-            <motion.button
-              type="submit"
-              className="w-full bg-primary cursor-pointer text-primary-foreground shadow-xs hover:bg-primary/90 px-4 py-2.75 rounded-2xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              disabled={!state.canSubmit || state.isSubmitting}
-              whileHover={
-                !state.isSubmitting && state.canSubmit
-                  ? { scale: 1.01 }
-                  : undefined
-              }
-              whileTap={
-                !state.isSubmitting && state.canSubmit
-                  ? { scale: 0.98 }
-                  : undefined
-              }
-              transition={{ duration: 0.2 }}
-              style={{ willChange: "transform" }}
-            >
-              <div className="h-5 flex items-center justify-center">
-                <AnimatePresence mode="wait" initial={false}>
-                  {state.isSubmitting ? (
-                    <motion.div
-                      key="spinner"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex items-center justify-center"
-                    >
-                      <Spinner size="sm" className="text-primary-foreground" />
-                    </motion.div>
-                  ) : (
-                    <motion.span
-                      key="text"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.2 }}
-                      className="leading-none"
-                    >
-                      Sign In
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.button>
-          )}
+          {(state) => {
+            const isEmailEmpty =
+              !state.values.email || state.values.email.trim() === "";
+            const isPasswordEmpty =
+              !state.values.password || state.values.password.trim() === "";
+            const isDisabled =
+              state.isSubmitting || isEmailEmpty || isPasswordEmpty;
+
+            return (
+              <motion.button
+                type="submit"
+                className="w-full bg-primary cursor-pointer text-primary-foreground transition-opacity duration-300 hover:bg-primary/90 px-4 py-2.75 rounded-2xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                disabled={isDisabled}
+                whileHover={!isDisabled ? { scale: 1.01 } : undefined}
+                whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+                transition={{ duration: 0.2 }}
+                style={{ willChange: "transform" }}
+              >
+                <div className="h-5 flex items-center justify-center">
+                  <AnimatePresence mode="wait" initial={false}>
+                    {state.isSubmitting ? (
+                      <motion.div
+                        key="spinner"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center justify-center"
+                      >
+                        <Spinner
+                          size="sm"
+                          className="text-primary-foreground"
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.span
+                        key="text"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        className="leading-none"
+                      >
+                        Sign in
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.button>
+            );
+          }}
         </form.Subscribe>
       </form>
 
@@ -229,7 +230,7 @@ export default function SignInForm({
         <span className="text-muted-foreground">Don't have an account? </span>
         <button
           onClick={onSwitchToSignUp}
-          className="h-auto p-0 text-primary underline-offset-2 hover:underline cursor-pointer"
+          className="h-auto p-0 text-primary cursor-pointer underline-offset-2 hover:underline"
         >
           Sign up
         </button>

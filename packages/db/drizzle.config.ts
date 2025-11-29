@@ -28,8 +28,8 @@ for (const envPath of envPaths) {
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL environment variable is required. " +
-    "Please set it in your .env file. " +
-    "Checked locations: apps/server/.env, root .env, packages/db/.env"
+      "Please set it in your .env file. " +
+      "Checked locations: apps/server/.env, root .env, packages/db/.env"
   );
 }
 
@@ -43,4 +43,3 @@ export default defineConfig({
   verbose: true,
   strict: true,
 });
-

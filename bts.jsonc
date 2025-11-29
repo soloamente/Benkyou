@@ -9,17 +9,13 @@
   "orm": "none",
   "backend": "elysia",
   "runtime": "bun",
-  "frontend": [
-    "next"
-  ],
-  "addons": [
-    "turborepo"
-  ],
+  "frontend": ["next"],
+  "addons": ["turborepo"],
   "examples": [],
   "auth": "better-auth",
   "packageManager": "bun",
   "dbSetup": "none",
   "api": "none",
   "webDeploy": "none",
-  "serverDeploy": "none"
+  "serverDeploy": "none",
 }

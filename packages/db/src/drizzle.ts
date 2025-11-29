@@ -30,11 +30,11 @@ let _db: ReturnType<typeof drizzle> | null = null;
 function getClient(): postgres.Sql {
   if (!_client) {
     const connectionString = process.env.DATABASE_URL;
-    
+
     if (!connectionString) {
       throw new Error(
         "DATABASE_URL environment variable is required. " +
-        "Please set it in your .env file (root directory or apps/server/.env)"
+          "Please set it in your .env file (root directory or apps/server/.env)"
       );
     }
 
@@ -78,4 +78,3 @@ export const db = dbProxy;
 export function getClientInstance(): postgres.Sql {
   return getClient();
 }
-

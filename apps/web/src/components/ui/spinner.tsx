@@ -67,8 +67,10 @@ const speedClasses: Record<SpeedVariant, string> = {
   fast: "animate-[spin_0.5s_linear_infinite]",
 };
 
-interface SpinnerProps
-  extends Omit<React.ComponentPropsWithoutRef<"svg">, "display" | "opacity"> {
+interface SpinnerProps extends Omit<
+  React.ComponentPropsWithoutRef<"svg">,
+  "display" | "opacity"
+> {
   size?: SizeVariant;
   speed?: SpeedVariant;
   className?: string;

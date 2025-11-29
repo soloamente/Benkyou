@@ -5,6 +5,7 @@ Database package using Drizzle ORM with Supabase (PostgreSQL).
 ## Setup
 
 1. **Install dependencies:**
+
    ```bash
    bun install
    ```
@@ -14,15 +15,19 @@ Database package using Drizzle ORM with Supabase (PostgreSQL).
    - Add your Supabase `DATABASE_URL` from Supabase Dashboard > Settings > Database > Connection string (URI mode)
 
 3. **Generate Better Auth schema:**
+
    ```bash
    bun run auth:generate
    ```
+
    This will generate the required database schema based on your Better Auth configuration.
 
 4. **Generate Drizzle migration:**
+
    ```bash
    bun run db:generate
    ```
+
    This creates migration files in the `drizzle/` directory.
 
 5. **Apply migrations to database:**
@@ -52,9 +57,9 @@ Database package using Drizzle ORM with Supabase (PostgreSQL).
 ## Supabase Connection
 
 The package uses `postgres-js` to connect to Supabase. Make sure your `DATABASE_URL` is in the format:
+
 ```
 postgresql://postgres:[PASSWORD]@[PROJECT-REF].supabase.co:5432/postgres
 ```
 
 You can find this in your Supabase Dashboard under Settings > Database > Connection string (URI mode).
-

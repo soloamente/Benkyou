@@ -40,7 +40,7 @@ export default function SignUpForm({
             // Error handling can be added here if needed
             console.error(error.error.message || error.error.statusText);
           },
-        }
+        },
       );
     },
     validators: {
@@ -54,7 +54,7 @@ export default function SignUpForm({
           .max(30, "Username must be at most 30 characters")
           .regex(
             /^[a-zA-Z0-9_.]+$/,
-            "Username can only contain letters, numbers, underscores, and dots"
+            "Username can only contain letters, numbers, underscores, and dots",
           ),
       }),
     },
@@ -65,8 +65,13 @@ export default function SignUpForm({
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Create Account</h1>
+    <div className="w-full max-w-sm mx-auto">
+      <div className="flex flex-col items-center justify-center mb-10">
+        <h1 className="text-center text-3xl font-bold">Create Account</h1>
+        {/* <h2 className="text-center text-sm text-muted-foreground">
+          Create your account to get started
+        </h2> */}
+      </div>
 
       <form
         onSubmit={(e) => {
@@ -140,7 +145,7 @@ export default function SignUpForm({
                 .max(30, "Username must be at most 30 characters")
                 .regex(
                   /^[a-zA-Z0-9_.]+$/,
-                  "Username can only contain letters, numbers, underscores, and dots"
+                  "Username can only contain letters, numbers, underscores, and dots",
                 ),
             }}
           >
@@ -294,53 +299,65 @@ export default function SignUpForm({
         </div>
 
         <form.Subscribe>
-          {(state) => (
-            <motion.button
-              type="submit"
-              className="w-full bg-primary cursor-pointer text-primary-foreground shadow-xs hover:bg-primary/90 px-4 py-2.75 rounded-2xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              disabled={!state.canSubmit || state.isSubmitting}
-              whileHover={
-                !state.isSubmitting && state.canSubmit
-                  ? { scale: 1.01 }
-                  : undefined
-              }
-              whileTap={
-                !state.isSubmitting && state.canSubmit
-                  ? { scale: 0.98 }
-                  : undefined
-              }
-              transition={{ duration: 0.2 }}
-              style={{ willChange: "transform" }}
-            >
-              <div className="h-5 flex items-center justify-center">
-                <AnimatePresence mode="wait" initial={false}>
-                  {state.isSubmitting ? (
-                    <motion.div
-                      key="spinner"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex items-center justify-center"
-                    >
-                      <Spinner size="sm" className="text-primary-foreground" />
-                    </motion.div>
-                  ) : (
-                    <motion.span
-                      key="text"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.2 }}
-                      className="leading-none"
-                    >
-                      Sign Up
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.button>
-          )}
+          {(state) => {
+            const isNameEmpty =
+              !state.values.name || state.values.name.trim() === "";
+            const isUsernameEmpty =
+              !state.values.username || state.values.username.trim() === "";
+            const isEmailEmpty =
+              !state.values.email || state.values.email.trim() === "";
+            const isPasswordEmpty =
+              !state.values.password || state.values.password.trim() === "";
+            const isDisabled =
+              state.isSubmitting ||
+              isNameEmpty ||
+              isUsernameEmpty ||
+              isEmailEmpty ||
+              isPasswordEmpty;
+
+            return (
+              <motion.button
+                type="submit"
+                className="w-full bg-primary cursor-pointer text-primary-foreground transition-opacity duration-300 hover:bg-primary/90 px-4 py-2.75 rounded-2xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                disabled={isDisabled}
+                whileHover={!isDisabled ? { scale: 1.01 } : undefined}
+                whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+                transition={{ duration: 0.2 }}
+                style={{ willChange: "transform" }}
+              >
+                <div className="h-5 flex items-center justify-center">
+                  <AnimatePresence mode="wait" initial={false}>
+                    {state.isSubmitting ? (
+                      <motion.div
+                        key="spinner"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center justify-center"
+                      >
+                        <Spinner
+                          size="sm"
+                          className="text-primary-foreground"
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.span
+                        key="text"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        className="leading-none"
+                      >
+                        Sign up
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.button>
+            );
+          }}
         </form.Subscribe>
       </form>
 
@@ -349,7 +366,7 @@ export default function SignUpForm({
         <Button
           variant="link"
           onClick={onSwitchToSignIn}
-          className="h-auto p-0 text-primary underline-offset-4 hover:underline"
+          className="h-auto p-0 text-primary cursor-pointer underline-offset-4 hover:underline"
         >
           Sign in
         </Button>

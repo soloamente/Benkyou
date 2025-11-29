@@ -2,6 +2,7 @@
 
 import SignUpForm from "@/components/sign-up-form";
 import { authClient } from "@/lib/auth-client";
+import { Spinner } from "@components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -19,10 +20,7 @@ export default function RegisterPage() {
   if (isPending) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
-          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
-        </div>
+        <Spinner />
       </div>
     );
   }

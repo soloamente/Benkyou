@@ -13,11 +13,13 @@ bun run auth:generate
 ```
 
 This command:
+
 - Reads `packages/auth/src/index.ts` for Better Auth configuration
 - Generates Drizzle schema in `packages/db/src/schema.ts`
 - Includes all tables required by Better Auth and enabled plugins
 
 **Important:** Run this command whenever you:
+
 - Add new Better Auth plugins
 - Change authentication methods
 - Update Better Auth configuration
@@ -31,6 +33,7 @@ bun run db:generate
 ```
 
 This creates migration files in `packages/db/drizzle/` that contain SQL statements to:
+
 - Create new tables
 - Add new columns
 - Modify existing columns
@@ -41,6 +44,7 @@ This creates migration files in `packages/db/drizzle/` that contain SQL statemen
 **Always review migration files before applying them!**
 
 Check the generated files in `packages/db/drizzle/`:
+
 - Look for any unexpected changes
 - Verify table structures match your expectations
 - Check for data loss (dropping columns, etc.)
@@ -54,6 +58,7 @@ bun run db:migrate
 ```
 
 This will:
+
 - Connect to your Supabase database
 - Execute the migration SQL
 - Update the migration history
@@ -71,6 +76,7 @@ This will:
 ### Adding Custom Tables
 
 1. Add your table definition to `packages/db/src/schema.ts`:
+
    ```typescript
    import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
@@ -83,6 +89,7 @@ This will:
    ```
 
 2. Export it from the schema:
+
    ```typescript
    export * from "./schema";
    ```
@@ -92,13 +99,13 @@ This will:
 
 ## Commands Reference
 
-| Command | When to Use |
-|---------|-------------|
-| `bun run auth:generate` | After changing Better Auth config |
-| `bun run db:generate` | After schema changes |
-| `bun run db:migrate` | To apply migrations to database |
-| `bun run db:push` | **Dev only** - Direct schema push (skips migrations) |
-| `bun run db:studio` | To view/edit database in browser |
+| Command                 | When to Use                                          |
+| ----------------------- | ---------------------------------------------------- |
+| `bun run auth:generate` | After changing Better Auth config                    |
+| `bun run db:generate`   | After schema changes                                 |
+| `bun run db:migrate`    | To apply migrations to database                      |
+| `bun run db:push`       | **Dev only** - Direct schema push (skips migrations) |
+| `bun run db:studio`     | To view/edit database in browser                     |
 
 ## Best Practices
 
@@ -134,11 +141,13 @@ If a migration fails:
 If your schema is out of sync:
 
 1. **Regenerate schema:**
+
    ```bash
    bun run auth:generate
    ```
 
 2. **Generate new migration:**
+
    ```bash
    bun run db:generate
    ```
@@ -186,4 +195,3 @@ bun run db:migrate
 # 6. Verify in Drizzle Studio
 bun run db:studio
 ```
-
