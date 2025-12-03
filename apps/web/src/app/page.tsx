@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import CardsBottom from "@components/cards-bottom";
 
 export default function Home() {
   const router = useRouter();
@@ -31,22 +32,23 @@ export default function Home() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center">
-      <div className="container mx-auto max-w-2xl px-4 text-center">
+      <div className="container mx-auto z-10 max-w-2xl px-4 text-center gap-4 flex flex-col items-center">
         <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-          Welcome to Benkyou
+          A better way to study with flashcards
         </h1>
-        <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
-          Get started by signing in or creating a new account
-        </p>
-        <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Button asChild size="lg">
-            <Link href="/login">Sign In</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/register">Sign Up</Link>
-          </Button>
-        </div>
+
+        <label className="flex items-center bg-primary w-fit text-primary-foreground text-[16px] rounded-full pr-1.25 pl-6.25 py-1.25 gap-2">
+          <input
+            type="email"
+            placeholder="email@example.com"
+            className="leading-none focus:outline-none font-medium w-40 flex items-center"
+          />
+          <button className="bg-background cursor-pointer rounded-full leading-none text-primary px-6 py-3.75">
+            Join Waitlist
+          </button>
+        </label>
       </div>
+      <CardsBottom />
     </div>
   );
 }
