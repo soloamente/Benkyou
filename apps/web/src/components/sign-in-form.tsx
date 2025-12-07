@@ -19,13 +19,13 @@ export default function SignInForm({
 
   const form = useForm({
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
     onSubmit: async ({ value }) => {
-      await authClient.signIn.email(
+      await authClient.signIn.username(
         {
-          email: value.email,
+          username: value.username,
           password: value.password,
         },
         {
@@ -41,7 +41,7 @@ export default function SignInForm({
     },
     validators: {
       onSubmit: z.object({
-        email: z.email("Invalid email address"),
+        username: z.string().min(3, "Username must be at least 3 characters"),
         password: z.string().min(8, "Password must be at least 8 characters"),
       }),
     },
@@ -56,7 +56,7 @@ export default function SignInForm({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="mx-auto w-full mt-10 max-w-sm p-6"
+      className="mx-auto w-full max-w-sm"
     >
       <h1 className="mb-10 text-center text-3xl font-semibold">Welcome Back</h1>
 
@@ -70,12 +70,17 @@ export default function SignInForm({
       >
         <div>
           <form.Field
-            name="email"
+            name="username"
             validators={{
               onChange: z
                 .string()
-                .min(1, "Email is required")
-                .email("Invalid email address"),
+                .min(1, "Username is required")
+                .min(3, "Username must be at least 3 characters")
+                .max(30, "Username must be at most 30 characters")
+                .regex(
+                  /^[a-zA-Z0-9_.]+$/,
+                  "Username can only contain letters, numbers, underscores, and dots",
+                ),
             }}
           >
             {(field) => (
@@ -83,10 +88,10 @@ export default function SignInForm({
                 <motion.input
                   id={field.name}
                   name={field.name}
-                  type="email"
+                  type="username"
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  placeholder="jane@example.com"
+                  placeholder="jane_123"
                   className="bg-background placeholder:text-muted-foreground leading-none w-full px-3.75 py-3.25 rounded-2xl font-medium transition-colors focus:outline-none "
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     field.handleChange(e.target.value)
@@ -173,12 +178,12 @@ export default function SignInForm({
 
         <form.Subscribe>
           {(state) => {
-            const isEmailEmpty =
-              !state.values.email || state.values.email.trim() === "";
+            const isUsernameEmpty =
+              !state.values.username || state.values.username.trim() === "";
             const isPasswordEmpty =
               !state.values.password || state.values.password.trim() === "";
             const isDisabled =
-              state.isSubmitting || isEmailEmpty || isPasswordEmpty;
+              state.isSubmitting || isUsernameEmpty || isPasswordEmpty;
 
             return (
               <motion.button
@@ -230,7 +235,7 @@ export default function SignInForm({
         <span className="text-muted-foreground">Don't have an account? </span>
         <button
           onClick={onSwitchToSignUp}
-          className="h-auto p-0 text-primary cursor-pointer underline-offset-2 hover:underline"
+          className="h-auto text-primary cursor-pointer underline-offset-2 hover:underline"
         >
           Sign up
         </button>

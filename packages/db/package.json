@@ -18,13 +18,18 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:pull": "drizzle-kit pull",
+    "db:studio": "drizzle-kit studio",
+    "db:verify": "bun run verify-tables.ts",
+    "db:create-tables": "bun run create-tables.ts",
+    "db:migrate-to-notes": "bun run migrate-to-notes.ts",
+    "db:migrate-to-study": "bun run migrate-to-study-system.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.36.4",
-    "postgres": "^3.4.5",
     "@supabase/supabase-js": "^2.47.10",
-    "dotenv": "catalog:"
+    "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.0",
+    "postgres": "^3.4.5"
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.1",

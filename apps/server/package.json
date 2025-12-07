@@ -6,16 +6,19 @@
     "build": "tsdown",
     "check-types": "tsc -b",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
-    "dev": "bun --hot src/index.ts",
+    "dev": "cd ../.. && bun --hot apps/server/src/index.ts",
     "start": "bun run dist/index.js"
   },
   "dependencies": {
-    "elysia": "^1.3.21",
+    "@benkyou/auth": "workspace:*",
+    "@benkyou/db": "workspace:*",
+    "@benkyou/fsrs": "workspace:*",
     "@elysiajs/cors": "^1.3.3",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
-    "zod": "catalog:",
-    "@benkyou/auth": "workspace:*"
+    "drizzle-orm": "^0.45.0",
+    "elysia": "^1.3.21",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:",

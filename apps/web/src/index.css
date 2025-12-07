@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./system.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -57,7 +58,7 @@ body {
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-secondary: var(--sidebar-secondary);
+  --color-title-secondary: var(--title-secondary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -95,7 +96,7 @@ body {
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary-foreground: oklch(1 0 0);
   --stats-secondary: oklch(0.8109 0 0);
   --stats-title: oklch(0.5555 0 0);
   --secondary: oklch(0.97 0 0);
@@ -163,7 +164,7 @@ body {
 }
 
 .dark {
-  --background: oklch(0.19 0 0);
+  --background: oklch(0.2264 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.28 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -180,7 +181,7 @@ body {
   --table-header: oklch(0.2972 0 0);
   --table-header-foreground: oklch(0.7187 0 0);
   --checkbox-border: oklch(0.4712 0 0);
-  --primary: oklch(0.922 0 0);
+  --primary: oklch(1 0 0);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -200,7 +201,7 @@ body {
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(1 0 0);
-  --sidebar-secondary: oklch(0.8015 0 0);
+  --title-secondary: oklch(0.8015 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -244,4 +245,60 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Study card animation - following Sonner's toast animation pattern */
+/* Card enters from bottom (like toast) but exits upward (reverse) */
+/* Using CSS transitions (not keyframes) for interruptible animations, exactly like Sonner */
+.study-card {
+  transition:
+    transform 400ms ease,
+    opacity 400ms ease;
+  will-change: transform, opacity;
+  /* Initial state - card at center */
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Card is mounted and visible at center position */
+.study-card[data-mounted="true"]:not([data-exiting="true"]) {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* Card starts below (entering from bottom like toast) - Sonner pattern */
+.study-card[data-mounted="false"] {
+  transform: translateY(100%) !important;
+  opacity: 0 !important;
+}
+
+/* Card is exiting - moves upward (reverse toast exit) */
+/* This is the reverse: toast exits downward, card exits upward */
+.study-card[data-mounted="true"][data-exiting="true"] {
+  transform: translateY(-100%) !important;
+  opacity: 0 !important;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .study-card {
+    transition: opacity 200ms ease;
+  }
+
+  .study-card[data-mounted="false"] {
+    transform: translateY(0);
+  }
+
+  .study-card[data-mounted="true"][data-exiting="true"] {
+    transform: translateY(0);
+  }
+}
+
+/* Stacked cards animation - following Sonner's stacking pattern */
+.study-card-stack {
+  min-height: 500px;
+  transition:
+    transform 400ms ease,
+    opacity 400ms ease;
+  will-change: transform, opacity;
 }

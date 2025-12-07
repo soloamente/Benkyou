@@ -2,23 +2,26 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as dotenv from "dotenv";
 import * as schema from "./schema";
+import { resolve } from "path";
 
 // Load environment variables from multiple possible locations
 // This allows the CLI to work even if .env is in different locations
+// Paths are resolved relative to the current working directory (workspace root when running from root)
 const envPaths = [
-  ".env", // Root directory
-  "../.env", // One level up
-  "../../.env", // Two levels up (from packages/db)
-  "../../apps/server/.env", // Server directory
+  resolve(process.cwd(), ".env"), // Root directory (current working directory)
+  resolve(process.cwd(), "apps/server/.env"), // Server directory
 ];
 
 // Try to load from each location (first one that exists wins)
-for (const envPath of envPaths) {
-  try {
-    dotenv.config({ path: envPath });
-    if (process.env.DATABASE_URL) break;
-  } catch {
-    // Continue to next path
+// Only load if DATABASE_URL is not already set (allows dotenv/config from index.ts to work)
+if (!process.env.DATABASE_URL) {
+  for (const envPath of envPaths) {
+    try {
+      dotenv.config({ path: envPath });
+      if (process.env.DATABASE_URL) break;
+    } catch {
+      // Continue to next path
+    }
   }
 }
 
@@ -34,7 +37,7 @@ function getClient(): postgres.Sql {
     if (!connectionString) {
       throw new Error(
         "DATABASE_URL environment variable is required. " +
-          "Please set it in your .env file (root directory or apps/server/.env)"
+          "Please set it in your .env file (root directory or apps/server/.env)",
       );
     }
 
