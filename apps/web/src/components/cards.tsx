@@ -1,11 +1,30 @@
+"use client";
+
 import { cn } from "@lib/utils";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 
 export default function Cards({ className }: { className?: string }) {
   return (
-    <>
+    <AnimatePresence>
       {/* Top hero image */}
-      <div
+      <motion.div
+        key="top-hero"
+        initial={{
+          y: "-50%",
+        }}
+        animate={{
+          y: "0%",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 30,
+          mass: 0.5,
+        }}
+        style={{
+          willChange: "transform",
+        }}
         className={cn(
           "fixed top-0 left-0 w-full pointer-events-none z-0 overflow-visible",
           className
@@ -21,10 +40,26 @@ export default function Cards({ className }: { className?: string }) {
             unoptimized
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Right hero image */}
-      <div
+      <motion.div
+        key="right-hero"
+        initial={{
+          x: "50%",
+        }}
+        animate={{
+          x: "0%",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 30,
+          mass: 0.5,
+        }}
+        style={{
+          willChange: "transform",
+        }}
         className={cn(
           "fixed top-0 right-0 h-full pointer-events-none z-1 overflow-visible",
           className
@@ -40,10 +75,26 @@ export default function Cards({ className }: { className?: string }) {
             unoptimized
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Left hero image */}
-      <div
+      <motion.div
+        key="left-hero"
+        initial={{
+          x: "-50%",
+        }}
+        animate={{
+          x: "0%",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 30,
+          mass: 0.5,
+        }}
+        style={{
+          willChange: "transform",
+        }}
         className={cn(
           "fixed top-0 left-0 h-full pointer-events-none z-1 overflow-visible",
           className
@@ -59,10 +110,26 @@ export default function Cards({ className }: { className?: string }) {
             unoptimized
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Bottom hero image */}
-      <div
+      <motion.div
+        key="bottom-hero"
+        initial={{
+          y: "50%",
+        }}
+        animate={{
+          y: "0%",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 30,
+          mass: 0.5,
+        }}
+        style={{
+          willChange: "transform",
+        }}
         className={cn(
           "fixed bottom-0 left-0 w-full pointer-events-none z-0 overflow-visible",
           className
@@ -78,7 +145,7 @@ export default function Cards({ className }: { className?: string }) {
             unoptimized
           />
         </div>
-      </div>
+      </motion.div>
       {/* <div className="flex flex-col justify-start font-medium  absolute shadow-lg shadow-black/50 rotate-70 px-7.5 py-10 -bottom-20 gap-14 -left-40 bg-card w-3xs h-80 rounded-4xl items-start">
         <h1 className="text-[1.375rem]">
           World War I space place from ?? to ??...
@@ -132,6 +199,6 @@ export default function Cards({ className }: { className?: string }) {
       <div className="flex flex-col justify-start font-medium absolute shadow-lg shadow-black/50 rotate-3 px-7.5 py-10 -bottom-40 gap-14 left-295 bg-card w-3xs h-80 rounded-4xl items-center">
         <h1 className="text-4xl">Who's the creator of Benkyō</h1>
       </div> */}
-    </>
+    </AnimatePresence>
   );
 }
