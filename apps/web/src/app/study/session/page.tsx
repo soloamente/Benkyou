@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { StudySession } from "@/components/study-session";
 import {
@@ -19,7 +19,9 @@ import { CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 
-export default function StudySessionPage() {
+// Extract component that uses useSearchParams to separate component
+// useSearchParams() requires Suspense boundary with Cache Components
+function StudySessionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const deckId = searchParams.get("deckId");
@@ -246,5 +248,25 @@ export default function StudySessionPage() {
         onExit={handleExit}
       />
     </div>
+  );
+}
+
+// Loading fallback for Suspense boundary
+function StudySessionLoading() {
+  return (
+    <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[600px]">
+      <div className="text-center">
+        <Spinner className="size-8 mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading study session...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function StudySessionPage() {
+  return (
+    <Suspense fallback={<StudySessionLoading />}>
+      <StudySessionContent />
+    </Suspense>
   );
 }

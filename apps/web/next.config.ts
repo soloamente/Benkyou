@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   typedRoutes: true,
   reactCompiler: true,
+  // Enable Cache Components (Next.js 16.0.6+)
+  cacheComponents: true,
   // Transpile workspace packages that contain TypeScript
   transpilePackages: ["@benkyou/fsrs"],
   async rewrites() {
@@ -26,6 +28,11 @@ const nextConfig: NextConfig = {
         // Proxy all /api/study/* requests to the Elysia server
         source: "/api/study/:path*",
         destination: `${process.env.SERVER_URL || "http://localhost:3000"}/api/study/:path*`,
+      },
+      {
+        // Proxy all /api/user/* requests to the Elysia server
+        source: "/api/user/:path*",
+        destination: `${process.env.SERVER_URL || "http://localhost:3000"}/api/user/:path*`,
       },
     ];
   },

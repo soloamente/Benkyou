@@ -1,32 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
 import { authClient } from "@lib/auth-client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Play,
-  Plus,
-  BookOpen,
-  Clock,
-  CheckCircle2,
-  TrendingUp,
-  BarChart3,
-} from "lucide-react";
+import { cn } from "@lib/utils";
+import { Plus, BookOpen } from "lucide-react";
 import { getDecks, type Deck as ApiDeck } from "@/lib/decks-api";
 import { getCards } from "@/lib/cards-api";
-import {
-  getDueCards,
-  getNewCards,
-  getLearningCards,
-  getStudyStats,
-  type StudyStats as StudyStatsType,
-} from "@/lib/study-api";
+import { getDueCards, getNewCards, getLearningCards } from "@/lib/study-api";
 import { CreateDeckDialog } from "@/components/create-deck-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
@@ -39,15 +20,6 @@ interface Deck extends ApiDeck {
   totalCards: number;
 }
 
-interface StudyStats {
-  cardsDue: number;
-  newCards: number;
-  reviewCards: number;
-  studyTimeToday: number; // in minutes
-  cardsStudiedToday: number;
-  streak: number;
-}
-
 export default function Dashboard({
   session,
 }: {
@@ -57,21 +29,10 @@ export default function Dashboard({
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoadingDecks, setIsLoadingDecks] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [studyStats, setStudyStats] = useState<StudyStatsType>({
-    cardsDue: 0,
-    newCards: 0,
-    reviewCards: 0,
-    learnCount: 0,
-    studyTimeToday: 0,
-    cardsStudiedToday: 0,
-    streak: 0,
-  });
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
-  // Fetch decks and stats on mount
+  // Fetch decks on mount
   useEffect(() => {
     loadDecks();
-    loadStudyStats();
   }, []);
 
   const loadDecks = async () => {
@@ -134,19 +95,6 @@ export default function Dashboard({
     }
   };
 
-  const loadStudyStats = async () => {
-    setIsLoadingStats(true);
-    try {
-      const stats = await getStudyStats();
-      setStudyStats(stats);
-    } catch (error) {
-      console.error("Error loading study stats:", error);
-      // Don't show error toast for stats, just use defaults
-    } finally {
-      setIsLoadingStats(false);
-    }
-  };
-
   const handleDeckClick = (deckId: string) => {
     router.push(`/dashboard/decks/${deckId}`);
   };
@@ -161,249 +109,139 @@ export default function Dashboard({
       totalCards: 0,
     };
     setDecks((prev) => [displayDeck, ...prev]);
-    // Reload stats to get updated counts
-    await loadStudyStats();
   };
 
-  const totalDue =
-    studyStats.cardsDue + studyStats.newCards + studyStats.learnCount;
-
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          Welcome back, {session.user.name}!
-        </h1>
-        <p className="text-muted-foreground">Ready to continue your studies?</p>
-      </div>
-
-      {/* Study Now Section */}
-      <Card className="bg-primary text-primary-foreground border-primary">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Study Now</h2>
-              <p className="text-primary-foreground/80 mb-4">
-                {totalDue > 0
-                  ? `You have ${totalDue} card${
-                      totalDue === 1 ? "" : "s"
-                    } due for review`
-                  : "No cards due. Great job!"}
-              </p>
-              <div className="flex gap-3">
-                <button
-                  className="inline-flex items-center justify-center rounded-md px-6 py-3 text-base font-medium bg-white text-primary hover:bg-white/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
-                  disabled={totalDue === 0}
-                  onClick={() => router.push("/study")}
-                >
-                  <Play className="size-5 mr-2" />
-                  {totalDue > 0 ? `Study ${totalDue} Cards` : "No Cards Due"}
-                </button>
-                <button
-                  className="inline-flex items-center justify-center rounded-md px-6 py-3 text-base font-medium border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
-                  onClick={() => router.push("/stats")}
-                >
-                  <BarChart3 className="size-5 mr-2" />
-                  View Stats
-                </button>
-                <button
-                  className="inline-flex items-center justify-center rounded-md px-6 py-3 text-base font-medium border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
-                  onClick={() => setIsCreateDialogOpen(true)}
-                >
-                  <Plus className="size-5 mr-2" />
-                  Create Deck
-                </button>
-              </div>
-            </div>
-            {totalDue > 0 && (
-              <div className="hidden md:flex items-center justify-center size-32 rounded-full border-4 border-primary-foreground/20">
-                <span className="text-4xl font-bold">{totalDue}</span>
-              </div>
-            )}
+    <div className="flex flex-col h-full overflow-y-auto p-6">
+      {isLoadingDecks ? (
+        <div className="flex items-center justify-center h-full">
+          <Spinner className="size-6" />
+        </div>
+      ) : decks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-full space-y-6">
+          <BookOpen className="size-16 text-title-secondary" />
+          <div className="flex flex-col space-y-2 text-center">
+            <h2 className="text-2xl font-bold leading-none text-title">
+              No decks yet
+            </h2>
+            <p className="text-md text-title-secondary">
+              Create your first deck to start studying
+            </p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Statistics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cards Due</CardTitle>
-            <BookOpen className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoadingStats ? (
-                <Spinner className="size-6" />
-              ) : (
-                studyStats.cardsDue
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {studyStats.newCards} new, {studyStats.reviewCards} review
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Study Time Today
-            </CardTitle>
-            <Clock className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoadingStats ? (
-                <Spinner className="size-6" />
-              ) : (
-                `${studyStats.studyTimeToday}m`
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {studyStats.cardsStudiedToday} cards studied
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Current Streak
-            </CardTitle>
-            <TrendingUp className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoadingStats ? (
-                <Spinner className="size-6" />
-              ) : (
-                studyStats.streak
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">days in a row</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Decks</CardTitle>
-            <CheckCircle2 className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{decks.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {decks.reduce((acc, deck) => acc + deck.totalCards, 0)} total
-              cards
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Decks Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Your Decks</CardTitle>
-                  <CardDescription>
-                    Manage and study your flashcard decks
-                  </CardDescription>
-                </div>
-                <button
-                  className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                  onClick={() => setIsCreateDialogOpen(true)}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{
+              duration: 0.15,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="inline-flex items-center justify-center rounded-2xl px-6 py-3 font-medium text-primary-foreground bg-primary hover:opacity-90 transition-opacity"
+          >
+            <Plus className="size-5 mr-2" />
+            Create Your First Deck
+          </motion.button>
+        </div>
+      ) : (
+        <>
+          {/* Gallery Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+            <AnimatePresence mode="popLayout">
+              {decks.map((deck, index) => (
+                <motion.div
+                  key={deck.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                    delay: index * 0.03,
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="aspect-[4/3] rounded-xl border-2 border-border bg-background p-4 flex flex-col justify-between cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => handleDeckClick(deck.id)}
                 >
-                  <Plus className="size-4 mr-2" />
-                  New Deck
-                </button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoadingDecks ? (
-                <div className="flex items-center justify-center py-12">
-                  <Spinner className="size-6" />
-                </div>
-              ) : decks.length === 0 ? (
-                <div className="text-center py-12">
-                  <BookOpen className="size-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No decks yet</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Create your first deck to start studying
-                  </p>
-                  <button
-                    className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                    onClick={() => setIsCreateDialogOpen(true)}
-                  >
-                    <Plus className="size-4 mr-2" />
-                    Create Your First Deck
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {decks.map((deck) => (
-                    <div
-                      key={deck.id}
-                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
-                      onClick={() => handleDeckClick(deck.id)}
-                    >
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-1">{deck.name}</h3>
-                        <div className="flex gap-4 text-sm text-muted-foreground">
-                          <span>{deck.dueCount} due</span>
-                          <span>{deck.newCount} new</span>
-                          <span>{deck.totalCards} total</span>
+                  <div className="flex flex-col space-y-2">
+                    <h3 className="text-base font-bold leading-none text-title line-clamp-2">
+                      {deck.name}
+                    </h3>
+                    {/* Card Statistics - Anki style */}
+                    <div className="flex flex-col space-y-1">
+                      {deck.dueCount > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-title-secondary">
+                            Review
+                          </span>
+                          <span className="text-xs font-semibold text-primary">
+                            {deck.dueCount}
+                          </span>
                         </div>
-                      </div>
-                      <button
-                        className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeckClick(deck.id);
-                        }}
-                      >
-                        Study
-                      </button>
+                      )}
+                      {deck.learnCount > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-title-secondary">
+                            Relearn
+                          </span>
+                          <span className="text-xs font-semibold text-orange-600">
+                            {deck.learnCount}
+                          </span>
+                        </div>
+                      )}
+                      {deck.newCount > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-title-secondary">
+                            New
+                          </span>
+                          <span className="text-xs font-semibold text-blue-600">
+                            {deck.newCount}
+                          </span>
+                        </div>
+                      )}
+                      {deck.dueCount === 0 &&
+                        deck.learnCount === 0 &&
+                        deck.newCount === 0 && (
+                          <div className="text-xs text-title-secondary">
+                            No cards to study
+                          </div>
+                        )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                  </div>
+                  <div className="text-[10px] text-title-secondary">
+                    {deck.totalCards} card{deck.totalCards !== 1 ? "s" : ""}{" "}
+                    total
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
-        {/* Recent Activity / Tips */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Study Tips</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="p-3 rounded-lg bg-accent/50">
-                <p className="font-medium mb-1">💡 Daily Practice</p>
-                <p className="text-muted-foreground">
-                  Study a little every day for better retention than cramming.
+            {/* Create Deck Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                duration: 0.2,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                delay: decks.length * 0.03,
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="aspect-[4/3] rounded-xl border-2 border-dashed border-border bg-background p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
+              <div className="flex flex-col items-center space-y-2">
+                <div className="size-8 rounded-full bg-border flex items-center justify-center">
+                  <Plus className="size-4 text-title-secondary" />
+                </div>
+                <p className="text-xs font-medium text-title-secondary">
+                  Create Deck
                 </p>
               </div>
-              <div className="p-3 rounded-lg bg-accent/50">
-                <p className="font-medium mb-1">📚 Active Recall</p>
-                <p className="text-muted-foreground">
-                  Try to recall the answer before flipping the card.
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-accent/50">
-                <p className="font-medium mb-1">⏱️ Spaced Repetition</p>
-                <p className="text-muted-foreground">
-                  Cards will appear more frequently until you master them.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </motion.div>
+          </div>
+        </>
+      )}
 
       {/* Create Deck Dialog */}
       <CreateDeckDialog

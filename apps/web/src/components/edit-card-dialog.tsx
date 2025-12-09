@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
@@ -78,7 +77,7 @@ export function EditCardDialog({
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to update card. Please try again.",
+          : "Failed to update card. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -123,16 +122,17 @@ export function EditCardDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button
+            <button
               type="button"
-              variant="outline"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
               onClick={() => handleOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
               disabled={isLoading || !front.trim() || !back.trim()}
             >
               {isLoading ? (
@@ -143,13 +143,10 @@ export function EditCardDialog({
               ) : (
                 "Update Card"
               )}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
-
-
-

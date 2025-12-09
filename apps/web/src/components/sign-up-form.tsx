@@ -5,9 +5,9 @@ import { useForm } from "@tanstack/react-form";
 import z from "zod";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "./loader";
-import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
 import { useRouter } from "next/navigation";
+import { getOnboardingStatus } from "@lib/onboarding-api";
 
 export default function SignUpForm({
   onSwitchToSignIn,
@@ -33,14 +33,26 @@ export default function SignUpForm({
           username: value.username,
         },
         {
-          onSuccess: () => {
-            router.push("/dashboard");
+          onSuccess: async () => {
+            // Check onboarding status and redirect accordingly
+            try {
+              const status = await getOnboardingStatus();
+              if (!status.onboardingCompleted) {
+                router.push("/onboarding");
+              } else {
+                router.push("/dashboard");
+              }
+            } catch (error) {
+              console.error("Error checking onboarding status:", error);
+              // On error, redirect to dashboard as fallback
+              router.push("/dashboard");
+            }
           },
           onError: (error) => {
             // Error handling can be added here if needed
             console.error(error.error.message || error.error.statusText);
           },
-        },
+        }
       );
     },
     validators: {
@@ -54,7 +66,7 @@ export default function SignUpForm({
           .max(30, "Username must be at most 30 characters")
           .regex(
             /^[a-zA-Z0-9_.]+$/,
-            "Username can only contain letters, numbers, underscores, and dots",
+            "Username can only contain letters, numbers, underscores, and dots"
           ),
       }),
     },
@@ -145,7 +157,7 @@ export default function SignUpForm({
                 .max(30, "Username must be at most 30 characters")
                 .regex(
                   /^[a-zA-Z0-9_.]+$/,
-                  "Username can only contain letters, numbers, underscores, and dots",
+                  "Username can only contain letters, numbers, underscores, and dots"
                 ),
             }}
           >
@@ -363,13 +375,13 @@ export default function SignUpForm({
 
       <div className="mt-4 text-center text-sm">
         <span className="text-muted-foreground">Already have an account? </span>
-        <Button
-          variant="link"
+        <button
+          type="button"
           onClick={onSwitchToSignIn}
-          className="h-auto p-0 text-primary cursor-pointer underline-offset-4 hover:underline"
+          className="h-auto p-0 text-primary cursor-pointer underline-offset-4 hover:underline bg-transparent border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           Sign in
-        </Button>
+        </button>
       </div>
     </div>
   );

@@ -15,9 +15,12 @@ export const user = pgTable("user", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
+  onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
+  onboardingSkipped: boolean("onboarding_skipped").default(false).notNull(),
   image: text("image"),
   username: text("username").unique(),
   displayUsername: text("display_username").unique(),
+  bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -41,7 +44,7 @@ export const session = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
   },
-  (table) => [index("session_userId_idx").on(table.userId)],
+  (table) => [index("session_userId_idx").on(table.userId)]
 );
 
 export const account = pgTable(
@@ -65,7 +68,7 @@ export const account = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("account_userId_idx").on(table.userId)],
+  (table) => [index("account_userId_idx").on(table.userId)]
 );
 
 export const verification = pgTable(
@@ -81,7 +84,7 @@ export const verification = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("verification_identifier_idx").on(table.identifier)],
+  (table) => [index("verification_identifier_idx").on(table.identifier)]
 );
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -113,7 +116,7 @@ export const deck = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("deck_userId_idx").on(table.userId)],
+  (table) => [index("deck_userId_idx").on(table.userId)]
 );
 
 // Note Type table for customizable card templates (like Anki note types)
@@ -136,7 +139,7 @@ export const noteType = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("note_type_userId_idx").on(table.userId)],
+  (table) => [index("note_type_userId_idx").on(table.userId)]
 );
 
 // Note table for storing actual note data with flexible fields
@@ -162,7 +165,7 @@ export const note = pgTable(
   (table) => [
     index("note_deckId_idx").on(table.deckId),
     index("note_noteTypeId_idx").on(table.noteTypeId),
-  ],
+  ]
 );
 
 // Card table for flashcards (generated from notes)
@@ -202,7 +205,7 @@ export const card = pgTable(
     index("card_noteId_idx").on(table.noteId),
     index("card_dueDate_idx").on(table.dueDate),
     index("card_state_idx").on(table.state),
-  ],
+  ]
 );
 
 // Study Session table for tracking study sessions
@@ -230,7 +233,7 @@ export const studySession = pgTable(
     index("study_session_userId_idx").on(table.userId),
     index("study_session_deckId_idx").on(table.deckId),
     index("study_session_startedAt_idx").on(table.startedAt),
-  ],
+  ]
 );
 
 // Study Record table for tracking individual card reviews
@@ -263,7 +266,7 @@ export const studyRecord = pgTable(
     index("study_record_cardId_idx").on(table.cardId),
     index("study_record_sessionId_idx").on(table.sessionId),
     index("study_record_reviewedAt_idx").on(table.reviewedAt),
-  ],
+  ]
 );
 
 // User Study Settings table for user preferences
@@ -296,7 +299,7 @@ export const userStudySettings = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("user_study_settings_userId_idx").on(table.userId)],
+  (table) => [index("user_study_settings_userId_idx").on(table.userId)]
 );
 
 // Relations for decks
@@ -358,7 +361,7 @@ export const studySessionRelations = relations(
       references: [deck.id],
     }),
     studyRecords: many(studyRecord),
-  }),
+  })
 );
 
 // Relations for study records
@@ -381,7 +384,7 @@ export const userStudySettingsRelations = relations(
       fields: [userStudySettings.userId],
       references: [user.id],
     }),
-  }),
+  })
 );
 
 // User relations including decks

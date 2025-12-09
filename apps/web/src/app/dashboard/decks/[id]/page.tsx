@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { headers } from "next/headers";
 import { auth } from "@benkyou/auth";
 import Header from "@/components/header";
 import DeckDetail from "./deck-detail";
 
-export default async function DeckDetailPage({
+// Extract dynamic data fetching to a separate component
+// This component accesses headers, params, and makes API calls, so it needs to be wrapped in Suspense
+async function DeckDetailContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -73,5 +76,28 @@ export default async function DeckDetailPage({
   );
 }
 
+// Loading fallback for Suspense boundary
+function DeckDetailLoading() {
+  return (
+    <>
+      <Header />
+      <div className="container mx-auto px-4 py-8 overflow-y-auto">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading deck...</p>
+        </div>
+      </div>
+    </>
+  );
+}
 
-
+export default async function DeckDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<DeckDetailLoading />}>
+      <DeckDetailContent params={params} />
+    </Suspense>
+  );
+}
