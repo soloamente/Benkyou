@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "motion/react";
 import Loader from "./loader";
 import { Spinner } from "./ui/spinner";
 import { useRouter } from "next/navigation";
-import { getOnboardingStatus } from "@lib/onboarding-api";
 
 export default function SignInForm({
   onSwitchToSignUp,
@@ -20,41 +19,42 @@ export default function SignInForm({
 
   const form = useForm({
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
     onSubmit: async ({ value }) => {
-      await authClient.signIn.username(
-        {
-          username: value.username,
-          password: value.password,
-        },
-        {
-          onSuccess: async () => {
-            // Check onboarding status and redirect accordingly
-            try {
-              const status = await getOnboardingStatus();
-              if (!status.onboardingCompleted) {
-                router.push("/onboarding");
+      try {
+        await authClient.signIn.email(
+          {
+            email: value.email,
+            password: value.password,
+          },
+          {
+            onSuccess: async () => {
+              // Wait a bit for the session to be established
+              await new Promise((resolve) => setTimeout(resolve, 100));
+              // Refresh session to ensure it's up to date
+              const session = await authClient.getSession();
+              // If user doesn't have a name, they need to complete onboarding
+              if (!session?.data?.user?.name || session.data.user.name.trim() === "") {
+                router.replace("/onboarding");
               } else {
-                router.push("/dashboard");
+                router.replace("/dashboard");
               }
-            } catch (error) {
-              console.error("Error checking onboarding status:", error);
-              // On error, redirect to dashboard as fallback
-              router.push("/dashboard");
-            }
-          },
-          onError: (error) => {
-            // Error handling can be added here if needed
-            console.error(error.error.message || error.error.statusText);
-          },
-        }
-      );
+            },
+            onError: (error) => {
+              // Error handling can be added here if needed
+              console.error("Sign in error:", error.error.message || error.error.statusText);
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Unexpected sign in error:", error);
+      }
     },
     validators: {
       onSubmit: z.object({
-        username: z.string().min(3, "Username must be at least 3 characters"),
+        email: z.email("Invalid email address"),
         password: z.string().min(8, "Password must be at least 8 characters"),
       }),
     },
@@ -83,17 +83,12 @@ export default function SignInForm({
       >
         <div>
           <form.Field
-            name="username"
+            name="email"
             validators={{
               onChange: z
                 .string()
-                .min(1, "Username is required")
-                .min(3, "Username must be at least 3 characters")
-                .max(30, "Username must be at most 30 characters")
-                .regex(
-                  /^[a-zA-Z0-9_.]+$/,
-                  "Username can only contain letters, numbers, underscores, and dots"
-                ),
+                .min(1, "Email is required")
+                .email("Invalid email address"),
             }}
           >
             {(field) => (
@@ -101,10 +96,10 @@ export default function SignInForm({
                 <motion.input
                   id={field.name}
                   name={field.name}
-                  type="username"
+                  type="email"
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  placeholder="jane_123"
+                  placeholder="jane@example.com"
                   className="bg-background placeholder:text-muted-foreground leading-none w-full px-3.75 py-3.25 rounded-2xl font-medium transition-colors focus:outline-none "
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     field.handleChange(e.target.value)
@@ -191,12 +186,12 @@ export default function SignInForm({
 
         <form.Subscribe>
           {(state) => {
-            const isUsernameEmpty =
-              !state.values.username || state.values.username.trim() === "";
+            const isEmailEmpty =
+              !state.values.email || state.values.email.trim() === "";
             const isPasswordEmpty =
               !state.values.password || state.values.password.trim() === "";
             const isDisabled =
-              state.isSubmitting || isUsernameEmpty || isPasswordEmpty;
+              state.isSubmitting || isEmailEmpty || isPasswordEmpty;
 
             return (
               <motion.button
