@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { KeyBindingMap, tinykeys, Options } from "./tinykeys";
+import { tinykeys } from "./tinykeys";
+import type { KeyBindingMap, Options } from "./tinykeys";
 
 export function useShortcuts(keyBindingMap: KeyBindingMap, options?: Options) {
   useEffect(() => {

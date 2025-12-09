@@ -10,8 +10,8 @@ import img5 from "./5.jpg";
 import img6 from "./6.jpg";
 import img7 from "./7.jpg";
 import Image from "next/image";
-import { useShortcuts } from "./use-shortcuts";
-import { clamp } from "./clamp";
+import { useShortcuts } from "../hooks/use-shortcuts";
+import { clamp } from "../hooks/clamp";
 
 let IMAGES = [img1, img2, img3, img4, img5, img6, img7];
 IMAGES = [...IMAGES, ...IMAGES, ...IMAGES, ...IMAGES, ...IMAGES, ...IMAGES];

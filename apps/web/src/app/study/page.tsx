@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +14,11 @@ import {
 import { BookOpen, Play, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { BottomNavbar } from "@/components/bottom-navbar";
 
-export default function StudyPage() {
+// Extract component that uses useSearchParams to separate component
+// useSearchParams() requires Suspense boundary with Cache Components
+function StudyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -110,117 +113,141 @@ export default function StudyPage() {
     availableCards.learning.length;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Study</h1>
-        <p className="text-muted-foreground">
-          Choose a deck to study or study all available cards
-        </p>
-      </div>
+    <>
+      <div className="container mx-auto px-4 py-8 max-w-4xl pb-24">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Study</h1>
+          <p className="text-muted-foreground">
+            Choose a deck to study or study all available cards
+          </p>
+        </div>
 
-      {/* Deck selection */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Select Deck</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedDeckId === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedDeckId(null)}
-            >
-              All Decks
-            </Button>
-            {decks.map((deck) => (
+        {/* Deck selection */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Select Deck</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
               <Button
-                key={deck.id}
-                variant={selectedDeckId === deck.id ? "default" : "outline"}
+                variant={selectedDeckId === null ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedDeckId(deck.id)}
+                onClick={() => setSelectedDeckId(null)}
               >
-                {deck.name}
+                All Decks
               </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Available cards summary */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Available Cards</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Spinner className="size-6" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 rounded-lg bg-accent/50">
-                <div className="text-2xl font-bold mb-1">
-                  {availableCards.due.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Due</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-accent/50">
-                <div className="text-2xl font-bold mb-1">
-                  {availableCards.new.length}
-                </div>
-                <div className="text-sm text-muted-foreground">New</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-accent/50">
-                <div className="text-2xl font-bold mb-1">
-                  {availableCards.learning.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Learning</div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Start study button */}
-      <div className="flex justify-center">
-        <Button
-          size="lg"
-          onClick={handleStartStudy}
-          disabled={isLoading || isStarting || totalCards === 0}
-          className="min-w-[200px]"
-        >
-          {isStarting ? (
-            <>
-              <Loader2 className="size-5 mr-2 animate-spin" />
-              Starting...
-            </>
-          ) : (
-            <>
-              <Play className="size-5 mr-2" />
-              Start Study Session ({totalCards} cards)
-            </>
-          )}
-        </Button>
-      </div>
-
-      {totalCards === 0 && !isLoading && (
-        <Card className="mt-6">
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <BookOpen className="size-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No cards available</h3>
-              <p className="text-sm text-muted-foreground">
-                {selectedDeckId
-                  ? "This deck has no cards due for review."
-                  : "You have no cards due for review. Great job!"}
-              </p>
+              {decks.map((deck) => (
+                <Button
+                  key={deck.id}
+                  variant={selectedDeckId === deck.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedDeckId(deck.id)}
+                >
+                  {deck.name}
+                </Button>
+              ))}
             </div>
           </CardContent>
         </Card>
-      )}
-    </div>
+
+        {/* Available cards summary */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Available Cards</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Spinner className="size-6" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 rounded-lg bg-accent/50">
+                  <div className="text-2xl font-bold mb-1">
+                    {availableCards.due.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Due</div>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-accent/50">
+                  <div className="text-2xl font-bold mb-1">
+                    {availableCards.new.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">New</div>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-accent/50">
+                  <div className="text-2xl font-bold mb-1">
+                    {availableCards.learning.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Learning</div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Start study button */}
+        <div className="flex justify-center">
+          <Button
+            size="lg"
+            onClick={handleStartStudy}
+            disabled={isLoading || isStarting || totalCards === 0}
+            className="min-w-[200px]"
+          >
+            {isStarting ? (
+              <>
+                <Loader2 className="size-5 mr-2 animate-spin" />
+                Starting...
+              </>
+            ) : (
+              <>
+                <Play className="size-5 mr-2" />
+                Start Study Session ({totalCards} cards)
+              </>
+            )}
+          </Button>
+        </div>
+
+        {totalCards === 0 && !isLoading && (
+          <Card className="mt-6">
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <BookOpen className="size-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">
+                  No cards available
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {selectedDeckId
+                    ? "This deck has no cards due for review."
+                    : "You have no cards due for review. Great job!"}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+      <BottomNavbar />
+    </>
   );
 }
 
+// Loading fallback for Suspense boundary
+function StudyLoading() {
+  return (
+    <>
+      <div className="container mx-auto px-4 py-8 max-w-4xl pb-24">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading study page...</p>
+        </div>
+      </div>
+      <BottomNavbar />
+    </>
+  );
+}
 
-
+export default function StudyPage() {
+  return (
+    <Suspense fallback={<StudyLoading />}>
+      <StudyContent />
+    </Suspense>
+  );
+}

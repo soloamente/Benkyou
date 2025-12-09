@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@lib/auth-client";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -115,14 +114,14 @@ export default function DeckDetail({
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
             onClick={() => router.push("/dashboard")}
           >
             <ArrowLeft className="size-4 mr-2" />
             Back to Dashboard
-          </Button>
+          </button>
           <div>
             <h1 className="text-3xl font-bold">{deck.name}</h1>
             <p className="text-muted-foreground">
@@ -131,25 +130,31 @@ export default function DeckDetail({
           </div>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="default"
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
             onClick={handleStudyDeck}
             disabled={totalStudyCards === 0}
           >
             <Play className="size-4 mr-2" />
             Study Deck ({totalStudyCards})
-          </Button>
-          <Button
-            variant="outline"
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
             onClick={() => router.push(`/stats?deckId=${deck.id}`)}
           >
             <BarChart3 className="size-4 mr-2" />
             View Stats
-          </Button>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+            onClick={() => setIsCreateDialogOpen(true)}
+          >
             <Plus className="size-4 mr-2" />
             Add Card
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -211,10 +216,14 @@ export default function DeckDetail({
               <p className="text-sm text-muted-foreground mb-4">
                 Create your first card to start studying
               </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                onClick={() => setIsCreateDialogOpen(true)}
+              >
                 <Plus className="size-4 mr-2" />
                 Create Your First Card
-              </Button>
+              </button>
             </div>
           ) : (
             <CardList

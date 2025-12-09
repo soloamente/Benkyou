@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { cn } from "@lib/utils";
+import { FooterYear } from "./footer-year";
 
 interface FooterProps {
   className?: string;
@@ -40,8 +41,6 @@ const footerLinks: { category: string; links: FooterLink[] }[] = [
 ];
 
 export default function Footer({ className }: FooterProps) {
-  const currentYear = new Date().getFullYear();
-
   return (
     <footer className={cn("border-t border-border bg-background", className)}>
       <div className="container mx-auto max-w-6xl px-4 py-12 md:py-16">
@@ -49,7 +48,7 @@ export default function Footer({ className }: FooterProps) {
           {/* Brand section */}
           <div className="md:col-span-1">
             <Link
-              href="/"
+              href={"/" as any} // Type assertion needed for typed routes
               className="text-2xl font-semibold mb-4 inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
             >
               Benkyō
@@ -67,7 +66,7 @@ export default function Footer({ className }: FooterProps) {
                 {section.links.map((link) => (
                   <li key={link.href}>
                     <Link
-                      href={link.href}
+                      href={link.href as any} // Type assertion needed for typed routes (hash anchors and routes)
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
                     >
                       {link.label}
@@ -82,17 +81,17 @@ export default function Footer({ className }: FooterProps) {
         {/* Bottom section */}
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} Benkyō. All rights reserved.
+            © <FooterYear /> Benkyō. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link
-              href="#terms"
+              href={"#terms" as any} // Type assertion needed for typed routes
               className="text-sm text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
             >
               Terms
             </Link>
             <Link
-              href="#privacy"
+              href={"#privacy" as any} // Type assertion needed for typed routes
               className="text-sm text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
             >
               Privacy
@@ -103,8 +102,3 @@ export default function Footer({ className }: FooterProps) {
     </footer>
   );
 }
-
-
-
-
-

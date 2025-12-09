@@ -1,321 +1,53 @@
-"use client";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { headers } from "next/headers";
+import { auth } from "@benkyou/auth";
+import OnboardingClient from "./onboarding-client";
 
-import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence, MotionConfig } from "motion/react";
-import useMeasure from "react-use-measure";
-import { Input } from "@components/ui/input";
-import { authClient } from "@lib/auth-client";
-import { useRouter } from "next/navigation";
+/**
+ * Extract dynamic data fetching to a separate component
+ * This component accesses headers and makes API calls, so it needs to be wrapped in Suspense
+ */
+async function OnboardingContent() {
+  // Get headers for server-side session retrieval
+  const headersList = await headers();
 
-const variants = {
-  initial: (direction: number) => {
-    return { x: `${110 * direction}%`, opacity: 0 };
-  },
-  active: { x: "0%", opacity: 1 },
-  exit: (direction: number) => {
-    return { x: `${-110 * direction}%`, opacity: 0 };
-  },
-};
+  // Convert Next.js ReadonlyHeaders to Headers object for Better Auth
+  const authHeaders = new Headers();
+  headersList.forEach((value, key) => {
+    authHeaders.set(key, value);
+  });
 
-export default function OnboardingPage() {
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const [isTypingName, setIsTypingName] = useState(false);
-  const [isTypingUsername, setIsTypingUsername] = useState(false);
-  const [name, setName] = useState(session?.user?.name ?? "");
-  const [username, setUsername] = useState(session?.user?.username ?? "");
-  const [currentStep, setCurrentStep] = useState(0);
-  const [direction, setDirection] = useState<number>(1);
-  const [ref, bounds] = useMeasure();
-  const [hasMeasured, setHasMeasured] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  // Use server-side auth API to get session
+  const session = await auth.api.getSession({
+    headers: authHeaders,
+  });
 
-  useEffect(() => {
-    if (bounds.height > 0 && !hasMeasured) {
-      setHasMeasured(true);
-    }
-  }, [bounds.height, hasMeasured]);
+  // Redirect to login if not authenticated
+  if (!session?.user) {
+    redirect("/login");
+  }
 
-  const content = useMemo(() => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <div className="flex flex-col space-y-4">
-            <div className="flex flex-col space-y-2">
-              <h1 className="text-2xl leading-none">What's your name?</h1>
-              <h2 className="text-md text-title-secondary">
-                This is the name people will see in your profile.
-              </h2>
-            </div>
+  return <OnboardingClient session={session} />;
+}
 
-            <form className="space-y-4">
-              <Input
-                type="text"
-                name="name"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setIsTypingName(e.target.value.length > 0);
-                }}
-                onFocus={() => setIsTypingName(true)}
-                onBlur={() => setIsTypingName(name.length === 0 ? false : true)}
-                className="w-full"
-                placeholder={session?.user?.name || "Enter your name"}
-              />
-            </form>
-          </div>
-        );
-      case 1:
-        return (
-          <div className="flex flex-col space-y-4">
-            <div className="flex flex-col space-y-2">
-              <h1 className="text-2xl leading-none">
-                How should everyone call you?
-              </h1>
-              <h2 className="text-md text-title-secondary">
-                This is the username people will use to call you.
-              </h2>
-            </div>
-
-            <form className="space-y-4">
-              <Input
-                type="text"
-                name="username"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setIsTypingUsername(e.target.value.length > 0);
-                }}
-                onFocus={() => setIsTypingUsername(true)}
-                onBlur={() =>
-                  setIsTypingUsername(username.length === 0 ? false : true)
-                }
-                className="w-full"
-                placeholder={session?.user?.username || "Enter your username"}
-              />
-            </form>
-          </div>
-        );
-    }
-  }, [
-    currentStep,
-    name,
-    username,
-    session?.user?.name,
-    session?.user?.username,
-  ]);
-
+// Loading fallback for Suspense boundary
+function OnboardingLoading() {
   return (
-    <main className="m-2.5 bg-background h-screen">
-      <div className="bg-card rounded-3xl h-full pl-50  p-5 font-medium space-x-10 flex mx-auto justify-center items-center">
-        <MotionConfig transition={{ duration: 0.5, type: "spring", bounce: 0 }}>
-          <motion.div
-            initial={false}
-            animate={{
-              height: bounds.height > 0 ? bounds.height : "auto",
-            }}
-            className="overflow-hidden w-[400px] shrink-0"
-            style={{ willChange: "transform" }}
-            transition={
-              hasMeasured
-                ? { duration: 0.5, type: "spring", bounce: 0 }
-                : { duration: 0 }
-            }
-          >
-            <div className="flex flex-col space-y-8 p-6" ref={ref}>
-              <AnimatePresence
-                mode="popLayout"
-                initial={false}
-                custom={direction}
-              >
-                <motion.div
-                  key={currentStep}
-                  variants={variants}
-                  initial="initial"
-                  animate="active"
-                  exit="exit"
-                  custom={direction}
-                  style={{ willChange: "transform" }}
-                >
-                  {content}
-                </motion.div>
-              </AnimatePresence>
-              <motion.div layout className="flex justify-between gap-4 ">
-                {currentStep > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDirection(-1);
-                      setCurrentStep((prev) => prev - 1);
-                    }}
-                    className="py-2.5 px-5 rounded-2xl cursor-pointer font-medium text-[#63635d] border border-border bg-background hover:text-foreground transition-colors"
-                  >
-                    Back
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (currentStep === 0) {
-                      setDirection(1);
-                      setCurrentStep(1);
-                      return;
-                    }
-                    // Save name and username on final step
-                    if (currentStep === 1) {
-                      setIsSaving(true);
-                      try {
-                        const baseURL =
-                          typeof window !== "undefined"
-                            ? window.location.origin
-                            : process.env.NEXT_PUBLIC_APP_URL ||
-                              "http://localhost:3001";
+    <div className="flex items-center justify-center h-screen">
+      <p className="text-muted-foreground">Loading...</p>
+    </div>
+  );
+}
 
-                        const response = await fetch(
-                          `${baseURL}/api/user/profile`,
-                          {
-                            method: "PUT",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            credentials: "include",
-                            body: JSON.stringify({
-                              name: name.trim(),
-                              username: username.trim() || undefined,
-                            }),
-                          }
-                        );
-
-                        if (!response.ok) {
-                          const errorData = await response
-                            .json()
-                            .catch(() => ({}));
-                          throw new Error(
-                            errorData.error || "Failed to update profile"
-                          );
-                        }
-
-                        // Refresh session to get updated user data
-                        await authClient.getSession();
-                        router.push("/dashboard");
-                      } catch (error) {
-                        console.error("Error updating profile:", error);
-                        setIsSaving(false);
-                        // You might want to show an error toast here
-                      }
-                      return;
-                    }
-                    setDirection(1);
-                    setCurrentStep((prev) => prev + 1);
-                  }}
-                  disabled={
-                    isSaving ||
-                    (currentStep === 1 && (!name.trim() || !username.trim()))
-                  }
-                  className={`py-2.5 px-5 rounded-2xl cursor-pointer  font-medium text-primary-foreground bg-primary hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${
-                    currentStep === 0 ? "w-full" : "ml-auto"
-                  }`}
-                >
-                  {isSaving
-                    ? "Saving..."
-                    : currentStep === 0
-                      ? "Confirm my name"
-                      : "Confirm my username"}
-                </button>
-              </motion.div>
-            </div>
-          </motion.div>
-        </MotionConfig>
-        <div className="relative">
-          <div className="absolute -top-6 h-[200px] w-[calc(100%+100px)] bg-linear-to-b from-card from-30% to-transparent pointer-events-none z-10 " />
-          <div className="absolute -bottom-50 h-[calc(100%-150px)] from-60% w-full bg-linear-to-t from-card to-transparent pointer-events-none z-10 " />
-          <div className="absolute -right-50 w-[440px] h-[calc(100%+200px)] bg-linear-to-l from-card from-40% to-transparent pointer-events-none z-10 " />
-
-          {/* Profile Preview */}
-          <motion.div
-            initial={{ y: 0, scale: 1.1 }}
-            animate={{
-              y: isTypingUsername ? 0 : isTypingName ? 40 : 0,
-              scale: isTypingUsername ? 1.5 : isTypingName ? 1.3 : 1.1,
-            }}
-            transition={{
-              duration: 0.3,
-              ease: [0.25, 0.46, 0.45, 0.94], // ease-out-quad
-            }}
-            style={{ transformOrigin: "left top" }}
-            className="flex flex-col space-y-2  border border-border h-[520px] w-[640px]  p-6 "
-          >
-            <div className="space-y-2 space-x-4 grid grid-cols-[calc(50%-0.5px)_1px_calc(50%-0.5px)] flex-1">
-              <div className="flex flex-col space-y-6 px-2 py-4">
-                <div className="size-20 bg-border rounded-full skeleton" />
-                <div className="flex flex-col space-y-1">
-                  {name.trim() ? (
-                    <p className="text-2xl text-title text-balance">
-                      <AnimatePresence mode="popLayout">
-                        {name.split("").map((letter, index) => (
-                          <motion.span
-                            key={`${letter}-${index}`}
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{
-                              duration: 0.1,
-                              ease: "easeOut",
-                            }}
-                            style={{ display: "inline-block" }}
-                          >
-                            {letter === " " ? "\u00A0" : letter}
-                          </motion.span>
-                        ))}
-                      </AnimatePresence>
-                    </p>
-                  ) : (
-                    <div className="h-7 w-48 bg-border rounded-md skeleton" />
-                  )}
-                  {username.trim() ? (
-                    <p className="text-lg text-title-secondary text-balance leading-none">
-                      <AnimatePresence mode="popLayout">
-                        <motion.span
-                          key="@"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          transition={{
-                            duration: 0.1,
-                            ease: "easeOut",
-                          }}
-                          style={{ display: "inline-block" }}
-                        >
-                          @
-                        </motion.span>
-                        {username.split("").map((letter, index) => (
-                          <motion.span
-                            key={`${letter}-${index}`}
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{
-                              duration: 0.1,
-                              ease: "easeOut",
-                            }}
-                            style={{ display: "inline-block" }}
-                          >
-                            {letter === " " ? "\u00A0" : letter}
-                          </motion.span>
-                        ))}
-                      </AnimatePresence>
-                    </p>
-                  ) : (
-                    <div className="w-full h-5 bg-border rounded-sm skeleton" />
-                  )}
-                </div>
-              </div>
-              <div className="w-px h-full bg-border" />
-              <div className="h-full "></div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </main>
+/**
+ * Server component wrapper for onboarding page
+ * Checks authentication and passes session to client component
+ */
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<OnboardingLoading />}>
+      <OnboardingContent />
+    </Suspense>
   );
 }

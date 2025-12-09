@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { type Card } from "@/lib/cards-api";
-import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { EditCardDialog } from "@/components/edit-card-dialog";
 import { deleteCard } from "@/lib/cards-api";
@@ -70,21 +69,21 @@ export function CardList({
             </div>
           </div>
           <div className="flex gap-2 ml-4">
-            <Button
-              size="sm"
-              variant="outline"
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
               onClick={() => setEditingCard(card)}
             >
               <Edit className="size-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
               onClick={() => handleDelete(card.id)}
               disabled={deletingCardId === card.id}
             >
               <Trash2 className="size-4" />
-            </Button>
+            </button>
           </div>
         </div>
       ))}

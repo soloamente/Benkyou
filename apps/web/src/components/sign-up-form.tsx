@@ -255,8 +255,9 @@ export default function SignUpForm({
       <div className="mt-4 text-center text-sm">
         <span className="text-muted-foreground">Already have an account? </span>
         <button
+          type="button"
           onClick={onSwitchToSignIn}
-          className="h-auto p-0 text-primary cursor-pointer underline-offset-4 hover:underline"
+          className="h-auto p-0 text-primary cursor-pointer underline-offset-4 hover:underline bg-transparent border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           Sign in
         </button>

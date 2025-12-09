@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "motion/react";
 import Loader from "./loader";
 import { Spinner } from "./ui/spinner";
 import { useRouter } from "next/navigation";
+import { getOnboardingStatus } from "@lib/onboarding-api";
 
 export default function SignInForm({
   onSwitchToSignUp,
@@ -29,14 +30,26 @@ export default function SignInForm({
           password: value.password,
         },
         {
-          onSuccess: () => {
-            router.push("/dashboard");
+          onSuccess: async () => {
+            // Check onboarding status and redirect accordingly
+            try {
+              const status = await getOnboardingStatus();
+              if (!status.onboardingCompleted) {
+                router.push("/onboarding");
+              } else {
+                router.push("/dashboard");
+              }
+            } catch (error) {
+              console.error("Error checking onboarding status:", error);
+              // On error, redirect to dashboard as fallback
+              router.push("/dashboard");
+            }
           },
           onError: (error) => {
             // Error handling can be added here if needed
             console.error(error.error.message || error.error.statusText);
           },
-        },
+        }
       );
     },
     validators: {
@@ -79,7 +92,7 @@ export default function SignInForm({
                 .max(30, "Username must be at most 30 characters")
                 .regex(
                   /^[a-zA-Z0-9_.]+$/,
-                  "Username can only contain letters, numbers, underscores, and dots",
+                  "Username can only contain letters, numbers, underscores, and dots"
                 ),
             }}
           >

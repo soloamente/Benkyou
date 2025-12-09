@@ -18,7 +18,6 @@ import {
   studyRecord,
   userStudySettings,
   user,
-  schema,
 } from "@benkyou/db";
 import { eq, desc, and, lte, gte, or, isNull, sql } from "drizzle-orm";
 import {
@@ -1789,34 +1788,205 @@ const studyRoutes = new Elysia({ prefix: "/api/study" })
     }
   );
 
-// User profile routes
+// User routes for onboarding and profile management
 const userRoutes = new Elysia({ prefix: "/api/user" })
   .use(authMiddleware)
-  // Update user profile (name and username)
-  .put(
-    "/profile",
+  // Get onboarding status
+  .get(
+    "/onboarding-status",
+    async ({ auth }) => {
+      if (!auth?.user) {
+        return { error: "Unauthorized" };
+      }
+
+      const [userData] = await db
+        .select({
+          onboardingCompleted: user.onboardingCompleted,
+          onboardingSkipped: user.onboardingSkipped,
+        })
+        .from(user)
+        .where(eq(user.id, auth.user.id));
+
+      if (!userData) {
+        return { error: "User not found" };
+      }
+
+      // User has completed onboarding if they either completed it or skipped it
+      const onboardingCompleted =
+        ((userData.onboardingCompleted ?? false) ||
+          userData.onboardingSkipped) ??
+        false;
+
+      return {
+        onboardingCompleted,
+        onboardingSkipped: userData.onboardingSkipped ?? false,
+      };
+    },
+    {
+      auth: true,
+    }
+  )
+  // Complete onboarding - save profile data and mark as complete
+  .post(
+    "/onboarding",
     async ({ body, auth }) => {
       if (!auth?.user) {
         return { error: "Unauthorized" };
       }
 
-      // Update user in database
-      const [updatedUser] = await db
-        .update(user)
-        .set({
-          name: body.name,
-          username: body.username || null,
-        })
-        .where(eq(user.id, auth.user.id))
-        .returning();
+      try {
+        // Prepare update data
+        const updateData: {
+          name?: string;
+          username?: string;
+          onboardingCompleted: boolean;
+          onboardingSkipped: boolean;
+          image?: string;
+          bio?: string;
+        } = {
+          onboardingCompleted: true,
+          onboardingSkipped: false, // Clear skipped flag when completing onboarding
+        };
 
-      return { user: updatedUser };
+        // Update name if provided
+        if (body.name) {
+          updateData.name = body.name;
+        }
+
+        // Update username if provided
+        if (body.username) {
+          updateData.username = body.username;
+        }
+
+        // Update bio if provided
+        if (body.bio) {
+          updateData.bio = body.bio;
+        }
+
+        // Handle avatar upload if provided
+        if (body.avatar) {
+          // For now, we'll store the image URL or base64
+          // In production, you'd want to upload to a storage service (S3, Cloudinary, etc.)
+          // For simplicity, we'll store as base64 data URL or handle file upload separately
+          // This is a placeholder - you may want to implement proper file storage
+          if (body.avatar instanceof File) {
+            // Convert file to base64 or upload to storage service
+            const arrayBuffer = await body.avatar.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const base64 = buffer.toString("base64");
+            const mimeType = body.avatar.type;
+            updateData.image = `data:${mimeType};base64,${base64}`;
+          } else if (typeof body.avatar === "string") {
+            // Already a data URL or URL
+            updateData.image = body.avatar;
+          }
+        }
+
+        // Handle goals - they come as JSON string in FormData
+        // Parse goals if provided as string, otherwise use array if already parsed
+        let parsedGoals: string[] | undefined;
+        if (body.goals) {
+          if (typeof body.goals === "string") {
+            try {
+              parsedGoals = JSON.parse(body.goals);
+            } catch (e) {
+              console.warn("Failed to parse goals JSON:", e);
+            }
+          } else if (Array.isArray(body.goals)) {
+            parsedGoals = body.goals;
+          }
+        }
+
+        // Log goals for now (you can extend this to save goals if needed)
+        if (parsedGoals && parsedGoals.length > 0) {
+          console.log("User goals:", parsedGoals);
+          // TODO: Store goals in a separate table or as JSON field if needed
+        }
+
+        // Update user record
+        const [updatedUser] = await db
+          .update(user)
+          .set(updateData)
+          .where(eq(user.id, auth.user.id))
+          .returning();
+
+        if (!updatedUser) {
+          return { error: "Failed to update user" };
+        }
+
+        return {
+          success: true,
+          user: {
+            id: updatedUser.id,
+            name: updatedUser.name,
+            username: updatedUser.username,
+            image: updatedUser.image,
+            onboardingCompleted: updatedUser.onboardingCompleted,
+          },
+        };
+      } catch (error) {
+        console.error("Error updating onboarding:", error);
+        return {
+          error: "Failed to update profile",
+          message:
+            error instanceof Error ? error.message : "Unknown error occurred",
+        };
+      }
     },
     {
+      // Elysia automatically handles multipart/form-data when File type is present
+      // Goals come as JSON string in FormData, so we need to handle it as String and parse it
       body: t.Object({
-        name: t.String({ minLength: 1, maxLength: 255 }),
-        username: t.Optional(t.String({ minLength: 3, maxLength: 30 })),
+        name: t.Optional(t.String()),
+        username: t.Optional(t.String()),
+        avatar: t.Optional(t.File()),
+        goals: t.Optional(t.Union([t.String(), t.Array(t.String())])),
+        bio: t.Optional(t.String()),
       }),
+      auth: true,
+    }
+  )
+  // Skip onboarding - mark as skipped without requiring profile data
+  .post(
+    "/skip-onboarding",
+    async ({ auth }) => {
+      if (!auth?.user) {
+        return { error: "Unauthorized" };
+      }
+
+      try {
+        // Mark onboarding as skipped (not completed) - user can complete it later
+        const [updatedUser] = await db
+          .update(user)
+          .set({ onboardingSkipped: true })
+          .where(eq(user.id, auth.user.id))
+          .returning();
+
+        if (!updatedUser) {
+          return { error: "Failed to update user" };
+        }
+
+        return {
+          success: true,
+          user: {
+            id: updatedUser.id,
+            name: updatedUser.name,
+            username: updatedUser.username,
+            image: updatedUser.image,
+            onboardingCompleted: updatedUser.onboardingCompleted,
+            onboardingSkipped: updatedUser.onboardingSkipped,
+          },
+        };
+      } catch (error) {
+        console.error("Error skipping onboarding:", error);
+        return {
+          error: "Failed to skip onboarding",
+          message:
+            error instanceof Error ? error.message : "Unknown error occurred",
+        };
+      }
+    },
+    {
       auth: true,
     }
   );
