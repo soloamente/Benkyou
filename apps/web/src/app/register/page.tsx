@@ -13,7 +13,12 @@ export default function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isPending && session?.user) {
-      router.push("/dashboard");
+      // If user doesn't have a name, they need to complete onboarding
+      if (!session.user.name || session.user.name.trim() === "") {
+        router.push("/onboarding");
+      } else {
+        router.push("/dashboard");
+      }
     }
   }, [session, isPending, router]);
 

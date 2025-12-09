@@ -5,7 +5,6 @@ import { useForm } from "@tanstack/react-form";
 import z from "zod";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "./loader";
-import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
 import { useRouter } from "next/navigation";
 
@@ -21,41 +20,52 @@ export default function SignUpForm({
     defaultValues: {
       email: "",
       password: "",
-      name: "",
-      username: "",
     },
     onSubmit: async ({ value }) => {
-      await authClient.signUp.email(
-        {
-          email: value.email,
-          password: value.password,
-          name: value.name,
-          username: value.username,
-        },
-        {
-          onSuccess: () => {
-            router.push("/dashboard");
+      // Generate a temporary username that will be updated during onboarding
+      // Better Auth requires username to be at least 3 characters and match /^[a-zA-Z0-9_.]+$/
+      // Use email prefix + timestamp to ensure uniqueness
+      const emailPrefix =
+        value.email
+          .split("@")[0]
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "") || "user";
+      const timestamp = Date.now().toString().slice(-8); // Last 8 digits for uniqueness
+      const tempUsername = `${emailPrefix}_${timestamp}`.slice(0, 30); // Max 30 chars, min 3+ guaranteed
+
+      try {
+        await authClient.signUp.email(
+          {
+            email: value.email,
+            password: value.password,
+            name: "", // Will be set during onboarding
+            username: tempUsername, // Temporary username, will be updated during onboarding
           },
-          onError: (error) => {
-            // Error handling can be added here if needed
-            console.error(error.error.message || error.error.statusText);
-          },
-        },
-      );
+          {
+            onSuccess: async () => {
+              // Wait a bit for the session to be established
+              await new Promise((resolve) => setTimeout(resolve, 100));
+              // Refresh session to ensure it's up to date
+              await authClient.getSession();
+              router.replace("/onboarding");
+            },
+            onError: (error) => {
+              // Error handling can be added here if needed
+              console.error(
+                "Sign up error:",
+                error.error.message || error.error.statusText
+              );
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Unexpected sign up error:", error);
+      }
     },
     validators: {
       onSubmit: z.object({
-        name: z.string().min(2, "Name must be at least 2 characters"),
         email: z.email("Invalid email address"),
         password: z.string().min(8, "Password must be at least 8 characters"),
-        username: z
-          .string()
-          .min(3, "Username must be at least 3 characters")
-          .max(30, "Username must be at most 30 characters")
-          .regex(
-            /^[a-zA-Z0-9_.]+$/,
-            "Username can only contain letters, numbers, underscores, and dots",
-          ),
       }),
     },
   });
@@ -81,117 +91,6 @@ export default function SignUpForm({
         }}
         className="space-y-3"
       >
-        <div>
-          <form.Field
-            name="name"
-            validators={{
-              onChange: z
-                .string()
-                .min(1, "Name is required")
-                .min(2, "Name must be at least 2 characters"),
-            }}
-          >
-            {(field) => (
-              <div>
-                <motion.input
-                  className="bg-background placeholder:text-muted-foreground leading-none w-full px-3.75 py-3.25 rounded-2xl font-medium transition-colors focus:outline-none "
-                  id={field.name}
-                  name={field.name}
-                  type="text"
-                  placeholder="Jane "
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    field.handleChange(e.target.value)
-                  }
-                  whileFocus={{ scale: 1.01 }}
-                  transition={{ duration: 0.2 }}
-                  style={{ willChange: "transform" }}
-                />
-                <AnimatePresence mode="wait">
-                  {field.state.meta.errors.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                      animate={{ opacity: 1, height: "auto", marginTop: 4 }}
-                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="text-red-500 text-sm"
-                      >
-                        {field.state.meta.errors[0]?.message}
-                      </motion.p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
-          </form.Field>
-        </div>
-
-        <div>
-          <form.Field
-            name="username"
-            validators={{
-              onChange: z
-                .string()
-                .min(1, "Username is required")
-                .min(3, "Username must be at least 3 characters")
-                .max(30, "Username must be at most 30 characters")
-                .regex(
-                  /^[a-zA-Z0-9_.]+$/,
-                  "Username can only contain letters, numbers, underscores, and dots",
-                ),
-            }}
-          >
-            {(field) => (
-              <div>
-                <motion.input
-                  className="bg-background placeholder:text-muted-foreground leading-none w-full px-3.75 py-3.25 rounded-2xl font-medium transition-colors focus:outline-none "
-                  id={field.name}
-                  name={field.name}
-                  type="text"
-                  placeholder="jane_doe"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    field.handleChange(e.target.value)
-                  }
-                  whileFocus={{ scale: 1.01 }}
-                  transition={{ duration: 0.2 }}
-                  style={{ willChange: "transform" }}
-                />
-                <AnimatePresence mode="wait">
-                  {field.state.meta.errors.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                      animate={{ opacity: 1, height: "auto", marginTop: 4 }}
-                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="text-red-500 text-sm"
-                      >
-                        {field.state.meta.errors[0]?.message}
-                      </motion.p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
-          </form.Field>
-        </div>
-
         <div>
           <form.Field
             name="email"
@@ -300,20 +199,12 @@ export default function SignUpForm({
 
         <form.Subscribe>
           {(state) => {
-            const isNameEmpty =
-              !state.values.name || state.values.name.trim() === "";
-            const isUsernameEmpty =
-              !state.values.username || state.values.username.trim() === "";
             const isEmailEmpty =
               !state.values.email || state.values.email.trim() === "";
             const isPasswordEmpty =
               !state.values.password || state.values.password.trim() === "";
             const isDisabled =
-              state.isSubmitting ||
-              isNameEmpty ||
-              isUsernameEmpty ||
-              isEmailEmpty ||
-              isPasswordEmpty;
+              state.isSubmitting || isEmailEmpty || isPasswordEmpty;
 
             return (
               <motion.button
@@ -350,7 +241,7 @@ export default function SignUpForm({
                         transition={{ duration: 0.2 }}
                         className="leading-none"
                       >
-                        Sign up
+                        Create my account
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -363,13 +254,12 @@ export default function SignUpForm({
 
       <div className="mt-4 text-center text-sm">
         <span className="text-muted-foreground">Already have an account? </span>
-        <Button
-          variant="link"
+        <button
           onClick={onSwitchToSignIn}
           className="h-auto p-0 text-primary cursor-pointer underline-offset-4 hover:underline"
         >
           Sign in
-        </Button>
+        </button>
       </div>
     </div>
   );

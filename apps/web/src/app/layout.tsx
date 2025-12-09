@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import localFont from "next/font/local";
 import "../index.css";
@@ -65,6 +66,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {process.env.NODE_ENV === "development" && (
+          <>
+            <Script
+              src="//unpkg.com/react-grab/dist/index.global.js"
+              strategy="beforeInteractive"
+            />
+            <Script
+              src="//unpkg.com/@react-grab/cursor/dist/client.global.js"
+              strategy="lazyOnload"
+            />
+          </>
+        )}
+      </head>
       <body
         className={`${mPlusRounded.variable} ${sfProRounded.variable} font-sf-pro-rounded antialiased`}
       >

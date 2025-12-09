@@ -17,6 +17,8 @@ import {
   studySession,
   studyRecord,
   userStudySettings,
+  user,
+  schema,
 } from "@benkyou/db";
 import { eq, desc, and, lte, gte, or, isNull, sql } from "drizzle-orm";
 import {
@@ -1787,6 +1789,38 @@ const studyRoutes = new Elysia({ prefix: "/api/study" })
     }
   );
 
+// User profile routes
+const userRoutes = new Elysia({ prefix: "/api/user" })
+  .use(authMiddleware)
+  // Update user profile (name and username)
+  .put(
+    "/profile",
+    async ({ body, auth }) => {
+      if (!auth?.user) {
+        return { error: "Unauthorized" };
+      }
+
+      // Update user in database
+      const [updatedUser] = await db
+        .update(user)
+        .set({
+          name: body.name,
+          username: body.username || null,
+        })
+        .where(eq(user.id, auth.user.id))
+        .returning();
+
+      return { user: updatedUser };
+    },
+    {
+      body: t.Object({
+        name: t.String({ minLength: 1, maxLength: 255 }),
+        username: t.Optional(t.String({ minLength: 3, maxLength: 30 })),
+      }),
+      auth: true,
+    }
+  );
+
 const app = new Elysia()
   .use(
     cors({
@@ -1813,6 +1847,7 @@ const app = new Elysia()
   .use(deckRoutes)
   .use(cardRoutes)
   .use(studyRoutes)
+  .use(userRoutes)
   // Global error handler to catch and log errors (must be after routes)
   .onError(({ error, code, set, request }) => {
     // Ignore favicon requests to reduce noise in logs

@@ -5,6 +5,7 @@ import { motion, AnimatePresence, MotionConfig } from "motion/react";
 import useMeasure from "react-use-measure";
 import { Input } from "@components/ui/input";
 import { authClient } from "@lib/auth-client";
+import { useRouter } from "next/navigation";
 
 const variants = {
   initial: (direction: number) => {
@@ -17,6 +18,7 @@ const variants = {
 };
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const { data: session } = authClient.useSession();
   const [isTypingName, setIsTypingName] = useState(false);
   const [isTypingUsername, setIsTypingUsername] = useState(false);
@@ -26,6 +28,7 @@ export default function OnboardingPage() {
   const [direction, setDirection] = useState<number>(1);
   const [ref, bounds] = useMeasure();
   const [hasMeasured, setHasMeasured] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (bounds.height > 0 && !hasMeasured) {
@@ -104,7 +107,7 @@ export default function OnboardingPage() {
 
   return (
     <main className="m-2.5 bg-background h-screen">
-      <div className="bg-card rounded-3xl h-full pl-100  p-5 font-medium space-x-10 flex mx-auto justify-center items-center">
+      <div className="bg-card rounded-3xl h-full pl-50  p-5 font-medium space-x-10 flex mx-auto justify-center items-center">
         <MotionConfig transition={{ duration: 0.5, type: "spring", bounce: 0 }}>
           <motion.div
             initial={false}
@@ -152,39 +155,88 @@ export default function OnboardingPage() {
                 )}
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     if (currentStep === 0) {
                       setDirection(1);
                       setCurrentStep(1);
                       return;
                     }
-                    // Add logic for final step or continue to next step
+                    // Save name and username on final step
+                    if (currentStep === 1) {
+                      setIsSaving(true);
+                      try {
+                        const baseURL =
+                          typeof window !== "undefined"
+                            ? window.location.origin
+                            : process.env.NEXT_PUBLIC_APP_URL ||
+                              "http://localhost:3001";
+
+                        const response = await fetch(
+                          `${baseURL}/api/user/profile`,
+                          {
+                            method: "PUT",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                              name: name.trim(),
+                              username: username.trim() || undefined,
+                            }),
+                          }
+                        );
+
+                        if (!response.ok) {
+                          const errorData = await response
+                            .json()
+                            .catch(() => ({}));
+                          throw new Error(
+                            errorData.error || "Failed to update profile"
+                          );
+                        }
+
+                        // Refresh session to get updated user data
+                        await authClient.getSession();
+                        router.push("/dashboard");
+                      } catch (error) {
+                        console.error("Error updating profile:", error);
+                        setIsSaving(false);
+                        // You might want to show an error toast here
+                      }
+                      return;
+                    }
                     setDirection(1);
                     setCurrentStep((prev) => prev + 1);
                   }}
-                  className={`py-2.5 px-5 rounded-2xl cursor-pointer  font-medium text-primary-foreground bg-primary hover:opacity-90 transition-opacity ${
+                  disabled={
+                    isSaving ||
+                    (currentStep === 1 && (!name.trim() || !username.trim()))
+                  }
+                  className={`py-2.5 px-5 rounded-2xl cursor-pointer  font-medium text-primary-foreground bg-primary hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${
                     currentStep === 0 ? "w-full" : "ml-auto"
                   }`}
                 >
-                  {currentStep === 0
-                    ? "Confirm my name"
-                    : "Confirm my username"}
+                  {isSaving
+                    ? "Saving..."
+                    : currentStep === 0
+                      ? "Confirm my name"
+                      : "Confirm my username"}
                 </button>
               </motion.div>
             </div>
           </motion.div>
         </MotionConfig>
         <div className="relative">
-          <div className="absolute -top-30 h-[400px] w-[calc(100%+550px)] bg-linear-to-b from-card from-40% to-transparent pointer-events-none z-10 " />
-          <div className="absolute -bottom-90 h-[calc(100%+50px)] from-60% w-[calc(100%+550px)] bg-linear-to-t from-card to-transparent pointer-events-none z-10 " />
-          <div className="absolute -right-130 w-[650px] h-[calc(100%+300px)]  bg-linear-to-l from-card from-70% to-transparent pointer-events-none z-10 " />
+          <div className="absolute -top-6 h-[200px] w-[calc(100%+100px)] bg-linear-to-b from-card from-30% to-transparent pointer-events-none z-10 " />
+          <div className="absolute -bottom-50 h-[calc(100%-150px)] from-60% w-full bg-linear-to-t from-card to-transparent pointer-events-none z-10 " />
+          <div className="absolute -right-50 w-[440px] h-[calc(100%+200px)] bg-linear-to-l from-card from-40% to-transparent pointer-events-none z-10 " />
 
           {/* Profile Preview */}
           <motion.div
             initial={{ y: 0, scale: 1.1 }}
             animate={{
-              y: isTypingUsername ? -100 : isTypingName ? 20 : 0,
-              scale: isTypingUsername ? 1.8 : isTypingName ? 1.4 : 1.1,
+              y: isTypingUsername ? 0 : isTypingName ? 40 : 0,
+              scale: isTypingUsername ? 1.5 : isTypingName ? 1.3 : 1.1,
             }}
             transition={{
               duration: 0.3,
@@ -194,7 +246,7 @@ export default function OnboardingPage() {
             className="flex flex-col space-y-2  border border-border h-[520px] w-[640px]  p-6 "
           >
             <div className="space-y-2 space-x-4 grid grid-cols-[calc(50%-0.5px)_1px_calc(50%-0.5px)] flex-1">
-              <div className="flex flex-col space-y-6 px-2 py-6">
+              <div className="flex flex-col space-y-6 px-2 py-4">
                 <div className="size-20 bg-border rounded-full skeleton" />
                 <div className="flex flex-col space-y-1">
                   {name.trim() ? (
@@ -256,7 +308,6 @@ export default function OnboardingPage() {
                   ) : (
                     <div className="w-full h-5 bg-border rounded-sm skeleton" />
                   )}
-                  <div className="w-full h-40 bg-border rounded-xl skeleton mt-5" />
                 </div>
               </div>
               <div className="w-px h-full bg-border" />
