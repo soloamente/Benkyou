@@ -1,0 +1,256 @@
+---
+description: React component design principles for prop naming, composability, and performance
+globs: *.tsx, *.jsx
+alwaysApply: false
+---
+
+# React Component Design Principles
+
+Guidelines for creating well-designed, maintainable React components based on prop naming, composability, and performance best practices.
+
+## Contextual Props
+
+- **MUST**: Remove redundant context from prop names when the component name already provides it
+- **MUST**: Use terse prop names at the component level, but keep verbose state names in parent components when needed for clarity
+- **SHOULD**: Omit prefixes that duplicate the component's context (e.g., `isDialogOpen` → `isOpen` in a `Dialog` component)
+- **SHOULD**: Consider the surrounding context when naming props—if context is clear, use shorter names
+
+### Examples
+
+```tsx
+// ❌ Bad: Duplicated context
+<Dialog
+  isDialogOpen={isDialogOpen}
+  onDialogClose={() => setIsDialogOpen(false)}
+/>
+
+// ✅ Good: Context provided by component name
+<Dialog
+  isOpen={isDialogOpen}
+  onClose={() => setIsDialogOpen(false)}
+/>
+
+// ✅ Good: Verbose state in parent, terse props in component
+const [isDialogOpen, setIsDialogOpen] = useState(false);
+// ... hundreds of lines later ...
+<Dialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
+
+// ✅ Good: Terse state when context is clear
+function BillingDialog() {
+  const [isOpen, setIsOpen] = useState(false);
+  return <Dialog isOpen={isOpen} onClose={() => setIsOpen(false)} />;
+}
+```
+
+### Contextual Prefix Removal
+
+- **SHOULD**: Remove redundant prefixes from prop values when the prop name already indicates the type
+- **SHOULD**: Append necessary prefixes inside the component rather than requiring them in prop values
+
+```tsx
+// ❌ Bad: Redundant prefixes
+<Pattern colorVariable="--color-blue-200" />
+
+// ✅ Good: Component handles prefixing
+<Pattern colorVariable="blue-200" />
+
+// ✅ Better: Remove redundant "Variable" from prop name
+<Pattern color="blue-200" />
+```
+
+## Derived Props
+
+- **MUST**: Derive behavior from existing props instead of adding boolean flags for single use cases
+- **SHOULD**: Use the presence/absence of callbacks or values to determine behavior
+- **NEVER**: Add boolean props that can be derived from existing props (e.g., `isClosable` when `onClose` already exists)
+
+### Examples
+
+```tsx
+// ❌ Bad: Adding boolean prop for behavior
+<Dialog
+  isOpen={isDialogOpen}
+  onClose={() => setIsDialogOpen(false)}
+  isClosable={false}
+/>
+
+// ✅ Good: Derive behavior from existing prop
+<Dialog
+  isOpen={isDialogOpen}
+  onClose={() => setIsDialogOpen(false)} // Present = closable
+/>
+
+<Dialog
+  isOpen={isDialogOpen}
+  // No onClose = not closable
+/>
+```
+
+### Rule of Thumb
+
+- **SHOULD**: Before adding a boolean prop, consider if the behavior can be derived from existing props
+- **SHOULD**: Use optional callbacks or values to signal behavior rather than explicit boolean flags
+
+## Enum Props
+
+- **MUST**: Use enum props instead of multiple boolean props for mutually exclusive states
+- **MUST**: Make impossible states impossible through type design
+- **SHOULD**: Use enum props for better autocomplete support and type safety
+- **SHOULD**: Pass enum values to data attributes for styling when appropriate
+
+### Examples
+
+```tsx
+// ❌ Bad: Multiple boolean props allow impossible states
+<Button isPrimary isSecondary /> // Impossible state!
+
+// ✅ Good: Enum prop prevents impossible states
+<Button variant="primary" />
+<Button variant="secondary" />
+
+// ✅ Good: Use data attributes for styling
+function Button({ children, variant }: { children: React.ReactNode; variant: "primary" | "secondary" }) {
+  return (
+    <button className="button" data-variant={variant}>
+      {children}
+    </button>
+  );
+}
+```
+
+### TypeScript Enum Props with Arbitrary Values
+
+- **SHOULD**: Use `(string & {})` instead of `string` to retain autocomplete while allowing arbitrary values
+
+```tsx
+// ❌ Bad: Loses autocomplete
+interface ButtonProps {
+  color: "accent" | "warning" | string;
+}
+
+// ✅ Good: Retains autocomplete for design system values
+interface ButtonProps {
+  color: "accent" | "warning" | (string & {});
+}
+```
+
+## Composability
+
+- **MUST**: Prefer compound components over prop-heavy APIs for flexible, low-level primitives
+- **SHOULD**: Use compound components (like Radix UI or Base UI patterns) to avoid prop bloat
+- **SHOULD**: Expose internal parts as separate components for maximum flexibility
+- **SHOULD**: Wrap low-level compound components into high-level design system components
+
+### Compound Component Pattern
+
+- **SHOULD**: Use `Object.assign` to create compound components with subcomponents
+
+```tsx
+// ✅ Good: Compound component pattern
+function Root() {}
+function Slide() {}
+
+export const Slides = Object.assign(Root, { Slide });
+
+// Usage
+<Slides>
+  <Slides.Slide title="Prop naming">
+    <p>...</p>
+  </Slides.Slide>
+  <Slides.Slide title="Composability">
+    <p>...</p>
+  </Slides.Slide>
+</Slides>;
+```
+
+### Composition vs Data Props
+
+- **SHOULD**: Prefer JSX composition over data props for better flexibility and developer experience
+- **SHOULD**: Use composition when you need to pass additional attributes or customize individual items
+
+```tsx
+// ❌ Bad: Data prop loses JSX and flexibility
+<Slides
+  data={[
+    { title: "Prop naming", children: <p>...</p> },
+    { title: "Composability", children: <p>...</p> }
+  ]}
+/>
+
+// ✅ Good: Composition with JSX
+<Slides>
+  <Slide title="Prop naming">
+    <p>...</p>
+  </Slide>
+  <Slide title="Composability">
+    <p>...</p>
+  </Slide>
+</Slides>
+```
+
+### Collection Management
+
+- **MUST**: Handle collection registration and cleanup properly when using compound components
+- **SHOULD**: Use refs to track child elements and pass active/selected state to descendants
+- **SHOULD**: Consider using established patterns (like Radix's collection utility) for complex collection management
+
+```tsx
+// Example pattern for collection management
+function Slides({ children }: { children: React.ReactNode }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const slides = useRef<HTMLDivElement[]>([]);
+
+  return (
+    <div>
+      {React.Children.map(children, (child, index) => {
+        return React.cloneElement(child as React.ReactElement, {
+          ref: (node: HTMLDivElement | null) => {
+            if (node) slides.current[index] = node;
+          },
+          active: activeIndex === index,
+        });
+      })}
+    </div>
+  );
+}
+```
+
+## Direct DOM Manipulation
+
+- **SHOULD**: Use direct DOM manipulation for high-frequency updates (mouse move, scroll) when React reconciliation would be too slow
+- **SHOULD**: Only use direct manipulation when other parts of the interface don't rely on this state
+- **MUST**: Use refs to access DOM elements for direct manipulation
+- **SHOULD**: Prefer direct style updates over React state for performance-critical interactions
+
+### Examples
+
+```tsx
+// ✅ Good: Direct manipulation for high-frequency updates
+const ref = useRef<HTMLDivElement>(null);
+
+function onMouseMove(e: React.MouseEvent) {
+  if (ref.current) {
+    ref.current.style.translate = `${e.clientX}px ${e.clientY}px`;
+  }
+}
+
+<div onMouseMove={onMouseMove}>
+  <div ref={ref} />
+</div>;
+```
+
+### When to Use Direct Manipulation
+
+- **SHOULD**: Use for mouse move, scroll, drag interactions that update frequently
+- **SHOULD**: Use when the state doesn't need to trigger React re-renders
+- **SHOULD**: Use when performance is critical and React reconciliation would cause jank
+- **NEVER**: Use if other components need to react to these changes
+- **NEVER**: Use if the state needs to be serialized or persisted
+
+## General Principles
+
+- **MUST**: Keep component APIs simple and focused
+- **SHOULD**: Avoid prop bloat by using composition and derived props
+- **SHOULD**: Design components to be flexible and composable
+- **SHOULD**: Consider performance implications when choosing between React state and direct manipulation
+- **SHOULD**: Use TypeScript to enforce enum props and prevent impossible states

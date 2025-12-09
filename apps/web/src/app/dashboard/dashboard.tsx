@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@lib/auth-client";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -193,34 +192,28 @@ export default function Dashboard({
                   : "No cards due. Great job!"}
               </p>
               <div className="flex gap-3">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="bg-white text-primary hover:bg-white/90"
+                <button
+                  className="inline-flex items-center justify-center rounded-md px-6 py-3 text-base font-medium bg-white text-primary hover:bg-white/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
                   disabled={totalDue === 0}
                   onClick={() => router.push("/study")}
                 >
                   <Play className="size-5 mr-2" />
                   {totalDue > 0 ? `Study ${totalDue} Cards` : "No Cards Due"}
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                </button>
+                <button
+                  className="inline-flex items-center justify-center rounded-md px-6 py-3 text-base font-medium border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
                   onClick={() => router.push("/stats")}
                 >
                   <BarChart3 className="size-5 mr-2" />
                   View Stats
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                </button>
+                <button
+                  className="inline-flex items-center justify-center rounded-md px-6 py-3 text-base font-medium border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
                   onClick={() => setIsCreateDialogOpen(true)}
                 >
                   <Plus className="size-5 mr-2" />
                   Create Deck
-                </Button>
+                </button>
               </div>
             </div>
             {totalDue > 0 && (
@@ -320,14 +313,13 @@ export default function Dashboard({
                     Manage and study your flashcard decks
                   </CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
+                  className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                   onClick={() => setIsCreateDialogOpen(true)}
                 >
                   <Plus className="size-4 mr-2" />
                   New Deck
-                </Button>
+                </button>
               </div>
             </CardHeader>
             <CardContent>
@@ -342,10 +334,13 @@ export default function Dashboard({
                   <p className="text-sm text-muted-foreground mb-4">
                     Create your first deck to start studying
                   </p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <button
+                    className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                    onClick={() => setIsCreateDialogOpen(true)}
+                  >
                     <Plus className="size-4 mr-2" />
                     Create Your First Deck
-                  </Button>
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -363,16 +358,15 @@ export default function Dashboard({
                           <span>{deck.totalCards} total</span>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
+                      <button
+                        className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeckClick(deck.id);
                         }}
                       >
                         Study
-                      </Button>
+                      </button>
                     </div>
                   ))}
                 </div>

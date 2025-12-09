@@ -27,6 +27,7 @@
       "@types/*": ["./src/types/*"],
       "@utils/*": ["./src/utils/*"],
       "@styles/*": ["./src/styles/*"],
+      "@benkyou/db": ["../packages/db/src/index.ts"],
       "@/*": ["./src/*"]
     }
   },

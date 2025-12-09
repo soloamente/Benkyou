@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@base-ui-components/react": "^1.0.0-rc.0",
     "@benkyou/auth": "workspace:*",
     "@benkyou/fsrs": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.2",
@@ -26,6 +27,7 @@
     "poline": "^0.11.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-use-measure": "^2.1.7",
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
     "tw-animate-css": "^1.3.4",

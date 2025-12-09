@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -96,15 +95,19 @@ export function CreateDeckDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button
+            <button
               type="button"
-              variant="outline"
+              className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:pointer-events-none transition-colors"
               onClick={() => handleOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading || !name.trim()}>
+            </button>
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              disabled={isLoading || !name.trim()}
+            >
               {isLoading ? (
                 <>
                   <Spinner className="mr-2" />
@@ -113,7 +116,7 @@ export function CreateDeckDialog({
               ) : (
                 "Create Deck"
               )}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>

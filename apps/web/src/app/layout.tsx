@@ -69,7 +69,7 @@ export default function RootLayout({
         className={`${mPlusRounded.variable} ${sfProRounded.variable} font-sf-pro-rounded antialiased`}
       >
         <Providers>
-          <div className="flex flex-col h-svh min-h-0">{children}</div>
+          <div className="flex flex-col h-svh min-h-0 isolate">{children}</div>
         </Providers>
       </body>
     </html>

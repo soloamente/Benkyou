@@ -1,32 +1,58 @@
 "use client";
 
 import { cn } from "@lib/utils";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export default function Cards({ className }: { className?: string }) {
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  useEffect(() => {
+    // Track scroll position to determine when to hide cards
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      // Start hiding cards when user scrolls down more than 50px
+      setIsScrolling(scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <AnimatePresence>
+    <>
       {/* Top hero image */}
       <motion.div
         key="top-hero"
         initial={{
-          y: "-50%",
+          y: "-100%",
         }}
         animate={{
-          y: "0%",
+          y: isScrolling ? "-100%" : "-10%",
         }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 30,
-          mass: 0.5,
-        }}
+        transition={
+          isScrolling
+            ? {
+                type: "tween",
+                duration: 0.4,
+                ease: "easeOut",
+              }
+            : {
+                type: "spring",
+                stiffness: 120,
+                damping: 50,
+                mass: 0.5,
+                delay: 0,
+                restSpeed: 0.01,
+                restDelta: 0.01,
+              }
+        }
         style={{
           willChange: "transform",
         }}
         className={cn(
-          "fixed top-0 left-0 w-full pointer-events-none z-0 overflow-visible",
+          "fixed top-0 left-0 w-full pointer-events-none z-0 overflow-visible will-change-transform",
           className
         )}
       >
@@ -37,7 +63,6 @@ export default function Cards({ className }: { className?: string }) {
             width={10000}
             height={10000}
             className="w-full h-auto object-contain"
-            unoptimized
           />
         </div>
       </motion.div>
@@ -46,22 +71,33 @@ export default function Cards({ className }: { className?: string }) {
       <motion.div
         key="right-hero"
         initial={{
-          x: "50%",
+          x: "100%",
         }}
         animate={{
-          x: "0%",
+          x: isScrolling ? "100%" : "0%",
         }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 30,
-          mass: 0.5,
-        }}
+        transition={
+          isScrolling
+            ? {
+                type: "tween",
+                duration: 0.4,
+                ease: "easeOut",
+              }
+            : {
+                type: "spring",
+                stiffness: 120,
+                damping: 50,
+                mass: 0.5,
+                delay: 0.05,
+                restSpeed: 0.01,
+                restDelta: 0.01,
+              }
+        }
         style={{
           willChange: "transform",
         }}
         className={cn(
-          "fixed top-0 right-0 h-full pointer-events-none z-1 overflow-visible",
+          "fixed top-0 right-0 h-full pointer-events-none z-1 overflow-visible will-change-transform",
           className
         )}
       >
@@ -72,7 +108,6 @@ export default function Cards({ className }: { className?: string }) {
             width={10000}
             height={10000}
             className="h-full w-auto object-contain"
-            unoptimized
           />
         </div>
       </motion.div>
@@ -81,22 +116,33 @@ export default function Cards({ className }: { className?: string }) {
       <motion.div
         key="left-hero"
         initial={{
-          x: "-50%",
+          x: "-100%",
         }}
         animate={{
-          x: "0%",
+          x: isScrolling ? "-100%" : "0%",
         }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 30,
-          mass: 0.5,
-        }}
+        transition={
+          isScrolling
+            ? {
+                type: "tween",
+                duration: 0.4,
+                ease: "easeOut",
+              }
+            : {
+                type: "spring",
+                stiffness: 120,
+                damping: 50,
+                mass: 0.5,
+                delay: 0.03,
+                restSpeed: 0.01,
+                restDelta: 0.01,
+              }
+        }
         style={{
           willChange: "transform",
         }}
         className={cn(
-          "fixed top-0 left-0 h-full pointer-events-none z-1 overflow-visible",
+          "fixed top-0 left-0 h-full pointer-events-none z-1 overflow-visible will-change-transform",
           className
         )}
       >
@@ -107,7 +153,6 @@ export default function Cards({ className }: { className?: string }) {
             width={10000}
             height={10000}
             className="h-full w-auto object-contain"
-            unoptimized
           />
         </div>
       </motion.div>
@@ -116,22 +161,33 @@ export default function Cards({ className }: { className?: string }) {
       <motion.div
         key="bottom-hero"
         initial={{
-          y: "50%",
+          y: "100%",
         }}
         animate={{
-          y: "0%",
+          y: isScrolling ? "100%" : "0%",
         }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 30,
-          mass: 0.5,
-        }}
+        transition={
+          isScrolling
+            ? {
+                type: "tween",
+                duration: 0.4,
+                ease: "easeOut",
+              }
+            : {
+                type: "spring",
+                stiffness: 120,
+                damping: 50,
+                mass: 0.5,
+                delay: 0.08,
+                restSpeed: 0.01,
+                restDelta: 0.01,
+              }
+        }
         style={{
           willChange: "transform",
         }}
         className={cn(
-          "fixed bottom-0 left-0 w-full pointer-events-none z-0 overflow-visible",
+          "fixed bottom-0 left-0 w-full pointer-events-none z-0 overflow-visible will-change-transform",
           className
         )}
       >
@@ -142,10 +198,14 @@ export default function Cards({ className }: { className?: string }) {
             width={10000}
             height={10000}
             className="w-full h-auto object-contain"
-            unoptimized
           />
         </div>
       </motion.div>
+
+      {/* Gradient overlay - transparent at bottom to background at top */}
+      <div className="fixed bottom-0 bg-linear-to-b from-transparent to-background via-background/80 to-90% from-10% via-60% left-0 right-0 h-[40%] pointer-events-none z-5" />
+      <div className="fixed top-0 bg-linear-to-t from-transparent to-background via-background/80 to-100% from-10% via-60% left-0 right-0 h-[40%] pointer-events-none z-5" />
+
       {/* <div className="flex flex-col justify-start font-medium  absolute shadow-lg shadow-black/50 rotate-70 px-7.5 py-10 -bottom-20 gap-14 -left-40 bg-card w-3xs h-80 rounded-4xl items-start">
         <h1 className="text-[1.375rem]">
           World War I space place from ?? to ??...
@@ -199,6 +259,6 @@ export default function Cards({ className }: { className?: string }) {
       <div className="flex flex-col justify-start font-medium absolute shadow-lg shadow-black/50 rotate-3 px-7.5 py-10 -bottom-40 gap-14 left-295 bg-card w-3xs h-80 rounded-4xl items-center">
         <h1 className="text-4xl">Who's the creator of Benkyō</h1>
       </div> */}
-    </AnimatePresence>
+    </>
   );
 }

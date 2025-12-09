@@ -930,30 +930,7 @@ const studyRoutes = new Elysia({ prefix: "/api/study" })
               !(validDueDate instanceof Date) ||
               isNaN(validDueDate.getTime())
             ) {
-              // If invalid, log and use current time as fallback
-              // #region agent log
-              fetch(
-                "http://127.0.0.1:7242/ingest/0ead915a-cb55-4612-83fd-91e767313b65",
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    location: "index.ts:928",
-                    message: "Invalid dueDate detected, using fallback",
-                    data: {
-                      rating,
-                      dueDate: result.dueDate,
-                      dueDateType: typeof result.dueDate,
-                      dueDateIsDate: result.dueDate instanceof Date,
-                    },
-                    timestamp: Date.now(),
-                    sessionId: "debug-session",
-                    runId: "run1",
-                    hypothesisId: "F",
-                  }),
-                }
-              ).catch(() => {});
-              // #endregion agent log
+              // If invalid, use current time as fallback
               validDueDate = now;
             }
 
@@ -961,53 +938,7 @@ const studyRoutes = new Elysia({ prefix: "/api/study" })
               dueDate: validDueDate,
               interval: result.interval,
             };
-            // #region agent log
-            fetch(
-              "http://127.0.0.1:7242/ingest/0ead915a-cb55-4612-83fd-91e767313b65",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  location: "index.ts:955",
-                  message: "Preview calculated for rating",
-                  data: {
-                    rating,
-                    state: result.state,
-                    dueDate: validDueDate.toISOString(),
-                    interval: result.interval,
-                    stability: result.stability,
-                  },
-                  timestamp: Date.now(),
-                  sessionId: "debug-session",
-                  runId: "run1",
-                  hypothesisId: "A,C,D",
-                }),
-              }
-            ).catch(() => {});
-            // #endregion agent log
           } catch (error) {
-            // #region agent log
-            fetch(
-              "http://127.0.0.1:7242/ingest/0ead915a-cb55-4612-83fd-91e767313b65",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  location: "index.ts:933",
-                  message: "Preview calculation error",
-                  data: {
-                    rating,
-                    error:
-                      error instanceof Error ? error.message : String(error),
-                  },
-                  timestamp: Date.now(),
-                  sessionId: "debug-session",
-                  runId: "run1",
-                  hypothesisId: "A",
-                }),
-              }
-            ).catch(() => {});
-            // #endregion agent log
             console.warn(
               `Failed to calculate preview for rating ${rating}:`,
               error
@@ -1015,29 +946,6 @@ const studyRoutes = new Elysia({ prefix: "/api/study" })
           }
         }
 
-        // #region agent log
-        fetch(
-          "http://127.0.0.1:7242/ingest/0ead915a-cb55-4612-83fd-91e767313b65",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              location: "index.ts:938",
-              message: "Preview endpoint returning data",
-              data: {
-                previewKeys: Object.keys(previews),
-                hasPreview3: !!previews[3],
-                preview3DueDate: previews[3]?.dueDate?.toISOString(),
-                preview3Interval: previews[3]?.interval,
-              },
-              timestamp: Date.now(),
-              sessionId: "debug-session",
-              runId: "run1",
-              hypothesisId: "A,C,D",
-            }),
-          }
-        ).catch(() => {});
-        // #endregion agent log
         return { previews };
       } catch (error) {
         console.error("Error calculating card preview:", error);
@@ -1889,6 +1797,11 @@ const app = new Elysia()
       credentials: true,
     })
   )
+  // Handle favicon requests to prevent 404 errors
+  .get("/favicon.ico", ({ set }) => {
+    set.status = 204; // No Content - tells browser there's no favicon
+    return;
+  })
   .all("/api/auth/*", async (context) => {
     const { request, status } = context;
     // Handle all HTTP methods that Better Auth might use
@@ -1902,6 +1815,12 @@ const app = new Elysia()
   .use(studyRoutes)
   // Global error handler to catch and log errors (must be after routes)
   .onError(({ error, code, set, request }) => {
+    // Ignore favicon requests to reduce noise in logs
+    if (request.url.includes("/favicon.ico")) {
+      set.status = 204;
+      return;
+    }
+
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
 
