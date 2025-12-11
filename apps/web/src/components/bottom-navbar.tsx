@@ -77,7 +77,7 @@ export function BottomNavbar() {
       }}
       className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-fit"
     >
-      <div className="bg-background border-2 border-border flex items-center justify-between gap-2 rounded-full px-2 py-2 ">
+      <div className="bg-background border-2 border-border flex items-center justify-between gap-2 rounded-full px-1.5 py-1.5 ">
         <div className="flex items-center justify-between gap-2">
           {/* User Avatar - First Item */}
           <motion.button
@@ -85,7 +85,7 @@ export function BottomNavbar() {
             whileTap={{ scale: 0.95 }}
             onClick={handleAvatarClick}
             className={cn(
-              "relative shrink-0 size-10 rounded-full overflow-hidden",
+              "relative shrink-0 size-8 rounded-full overflow-hidden",
               "bg-primary/10 border-2 border-border",
               "flex items-center justify-center",
               "transition-colors hover:bg-primary/20"
@@ -119,7 +119,7 @@ export function BottomNavbar() {
                   onClick={() => handleNavClick(item.href)}
                   className={cn(
                     "relative flex items-center justify-center cursor-pointer",
-                    "size-10 rounded-full",
+                    "size-8 rounded-full",
                     "transition-colors",
                     active
                       ? "bg-primary text-primary-foreground"
@@ -146,7 +146,7 @@ export function BottomNavbar() {
           </div>
 
           {/* Spacer to balance the layout */}
-          <div className="size-10 shrink-0" />
+          <div className="size-8 shrink-0" />
         </div>
       </div>
     </motion.nav>

@@ -160,57 +160,49 @@ export default function Dashboard({
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="aspect-[4/3] rounded-xl border-2 border-border bg-background p-4 flex flex-col justify-between cursor-pointer hover:border-primary/50 transition-colors"
+                  className="aspect-4/2 rounded-2xl border-2 border-border bg-background p-4 flex flex-col justify-between cursor-pointer hover:border-primary/50 transition-colors"
                   onClick={() => handleDeckClick(deck.id)}
                 >
-                  <div className="flex flex-col space-y-2">
-                    <h3 className="text-base font-bold leading-none text-title line-clamp-2">
+                  <div className="flex justify-between ">
+                    <h3 className="text-3xl leading-none text-title ">
                       {deck.name}
                     </h3>
                     {/* Card Statistics - Anki style */}
-                    <div className="flex flex-col space-y-1">
-                      {deck.dueCount > 0 && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-title-secondary">
-                            Review
-                          </span>
-                          <span className="text-xs font-semibold text-primary">
-                            {deck.dueCount}
-                          </span>
-                        </div>
-                      )}
-                      {deck.learnCount > 0 && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-title-secondary">
-                            Relearn
-                          </span>
-                          <span className="text-xs font-semibold text-orange-600">
-                            {deck.learnCount}
-                          </span>
-                        </div>
-                      )}
-                      {deck.newCount > 0 && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-title-secondary">
-                            New
-                          </span>
-                          <span className="text-xs font-semibold text-blue-600">
-                            {deck.newCount}
-                          </span>
-                        </div>
-                      )}
-                      {deck.dueCount === 0 &&
-                        deck.learnCount === 0 &&
-                        deck.newCount === 0 && (
-                          <div className="text-xs text-title-secondary">
-                            No cards to study
-                          </div>
-                        )}
+                    <div className="text-3xl text-title-secondary">
+                      {deck.totalCards} card
+                      {deck.totalCards !== 1 ? "s" : ""}{" "}
                     </div>
                   </div>
-                  <div className="text-[10px] text-title-secondary">
-                    {deck.totalCards} card{deck.totalCards !== 1 ? "s" : ""}{" "}
-                    total
+
+                  <div className="flex justify-end gap-8">
+                    <div className="flex items-center flex-col ">
+                      <span className="text-2xl font-semibold text-blue-600">
+                        {deck.newCount}
+                      </span>
+                      <span className=" text-title-secondary">New</span>
+                    </div>
+
+                    <div className="flex items-center flex-col ">
+                      <span className="text-2xl font-semibold text-orange-600">
+                        {deck.learnCount}
+                      </span>
+                      <span className=" text-title-secondary">Relearn</span>
+                    </div>
+
+                    <div className="flex items-center flex-col ">
+                      <span className="text-2xl font-semibold text-primary">
+                        {deck.dueCount}
+                      </span>
+                      <span className=" text-title-secondary">Review</span>
+                    </div>
+
+                    {deck.dueCount === 0 &&
+                      deck.learnCount === 0 &&
+                      deck.newCount === 0 && (
+                        <div className="text-xs text-title-secondary">
+                          No cards to study
+                        </div>
+                      )}
                   </div>
                 </motion.div>
               ))}
@@ -227,7 +219,7 @@ export default function Dashboard({
               }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="aspect-[4/3] rounded-xl border-2 border-dashed border-border bg-background p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+              className="aspect-4/2 rounded-2xl border-2 border-dashed border-border bg-background p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
               onClick={() => setIsCreateDialogOpen(true)}
             >
               <div className="flex flex-col items-center space-y-2">

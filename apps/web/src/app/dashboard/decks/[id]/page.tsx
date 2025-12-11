@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { auth } from "@benkyou/auth";
-import Header from "@/components/header";
+
 import DeckDetail from "./deck-detail";
 
 // Extract dynamic data fetching to a separate component
@@ -68,7 +68,6 @@ async function DeckDetailContent({
 
   return (
     <>
-      <Header />
       <div className="container mx-auto px-4 py-8 overflow-y-auto">
         <DeckDetail deck={deck} session={session} />
       </div>
@@ -80,7 +79,6 @@ async function DeckDetailContent({
 function DeckDetailLoading() {
   return (
     <>
-      <Header />
       <div className="container mx-auto px-4 py-8 overflow-y-auto">
         <div className="flex items-center justify-center h-64">
           <p className="text-muted-foreground">Loading deck...</p>
