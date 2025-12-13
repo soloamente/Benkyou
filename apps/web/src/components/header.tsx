@@ -38,7 +38,7 @@ export default function Header() {
           )}
         </AnimatePresence>
         <Link
-          href="/register"
+          href="/login"
           className="bg-primary text-primary-foreground rounded-full px-5 py-2.75 transition-all duration-500 ease-in-out"
         >
           {isScrolling ? "Join Waitlist" : "Login"}

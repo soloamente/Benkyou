@@ -5,12 +5,13 @@ import { motion } from "motion/react";
 import { LayoutDashboard, BarChart3, BookOpen } from "lucide-react";
 import { cn } from "@lib/utils";
 import { authClient } from "@lib/auth-client";
+import IconHome from "@icons/home";
 
 // Navigation items configuration
 const navItems = [
   {
     href: "/dashboard",
-    icon: LayoutDashboard,
+    icon: IconHome,
     label: "Dashboard",
   },
   {
