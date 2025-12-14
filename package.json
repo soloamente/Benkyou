@@ -34,6 +34,7 @@
     "dotenv": "^17.2.2",
     "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.45.0",
+    "nucleo-micro-bold": "^1.1.1",
     "radix-ui": "^1.4.3",
     "tailwindcss": "4",
     "zod": "^4.1.11"
