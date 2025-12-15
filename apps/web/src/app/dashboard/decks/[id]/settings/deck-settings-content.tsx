@@ -173,7 +173,12 @@ export async function DeckSettingsContent({
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-2.5 w-full h-full flex-0 min-w-[280px]">
+        {/* Right-side controls column: make width flexible and allow it to shrink with the page.
+            Previously this used `flex-0 min-w-[280px]`, which forced a fixed 280px sidebar and
+            prevented it from shrinking on smaller viewports. By switching to `flex-1 min-w-0`
+            we let the column take available space while still allowing it to shrink and wrap
+            according to the overall layout. */}
+        <div className="flex flex-col gap-2.5 w-full h-full flex-1 min-w-0">
           <div className="flex flex-col gap-2.5 w-full h-full">
             {/* Font Weight */}
             <div className="bg-card w-full justify-between flex items-center gap-5 rounded-4xl px-2.5 py-2.5 leading-none">
@@ -195,7 +200,7 @@ export async function DeckSettingsContent({
           {/* Target Word Color section */}
 
           <button className="bg-primary cursor-pointer font-semibold text-primary-foreground w-full justify-between flex items-center gap-5 rounded-4xl pl-5 pr-2.5 py-2.5 leading-none">
-            Finish and save
+            <p>Finish and save</p>
             <div className="flex gap-1.25 ">
               <div className="flex flex-col cursor-pointer rounded-full text-primary justify-center items-center bg-background w-[36px] h-[36px]">
                 <IconCheck3 size={18} strokeWidth={3} />

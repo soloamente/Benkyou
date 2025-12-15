@@ -136,9 +136,9 @@ export default function Dashboard({
               ease: [0.25, 0.46, 0.45, 0.94],
             }}
             onClick={() => setIsCreateDialogOpen(true)}
-            className="inline-flex items-center justify-center rounded-2xl px-6 py-3 font-medium text-primary-foreground bg-primary hover:opacity-90 transition-opacity"
+            className="inline-flex items-center justify-center rounded-2xl px-5 py-3.75 gap-2 font-semibold text-primary-foreground bg-primary hover:opacity-90 transition-opacity"
           >
-            <Plus className="size-5 mr-2" />
+            <Plus />
             Create Your First Deck
           </motion.button>
         </div>

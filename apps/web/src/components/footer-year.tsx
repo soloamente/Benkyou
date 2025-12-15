@@ -18,3 +18,5 @@ export function FooterYear() {
   // Use static fallback during SSR/prerender to avoid new Date() error
   return <>{year}</>;
 }
+
+

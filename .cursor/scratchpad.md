@@ -32,6 +32,7 @@ The route currently awaits `params` and fetches deck data via `getDeck(id)` at t
 - [ ] Task 1: Add Suspense boundary + move async work to child (ready for user verification)
 - [ ] Task 2: Run lint/type checks for touched files
 - [ ] Task 3: Persist breadcrumb CSS preview changes for deck settings page (ready for user verification)
+- [x] Task 4: Make deck settings right-hand sidebar width flexible so it can shrink with the page
 
 # Current Status / Progress Tracking
 
@@ -43,19 +44,19 @@ The route currently awaits `params` and fetches deck data via `getDeck(id)` at t
 - Extracted `DeckSettingsContent` into `deck-settings-content.tsx` to keep `page.tsx` thin and focused on the Suspense boundary + fallback UI.
 - Persisted breadcrumb CSS preview changes in `apps/web/src/app/dashboard/decks/[id]/settings/deck-settings-content.tsx` by translating them into Tailwind utility classes (width/font sizing/weight/opacity/color/alignment).
 - Updated the `DeckSettingsLoading` breadcrumb skeleton in `apps/web/src/app/dashboard/decks/[id]/settings/page.tsx` to mirror the new breadcrumb layout/styles to avoid CLS.
+- Adjusted the right-hand sidebar container in `deck-settings-content.tsx` from `flex-0 min-w-[280px]` to `flex-1 min-w-0` so its width is now flexible (`width: 100%`) and can shrink to fit the available page width while staying in the flex layout.
 
 # Executor's Feedback or Assistance Requests
 
 - Please refresh `/dashboard/decks/[id]/settings` in the browser and confirm the \"Blocking Route\" error is gone.
   - If you still see an error, paste the updated message and stack trace here.
 - Please visually verify the breadcrumb styling matches your preview:
-  - The breadcrumb line should be full-width, centered, `text-lg`, `font-medium`
-  - "Decks" should be ~40% opacity
-  - The "/" separators should be ~50% opacity
-  - Deck name + "Settings" should use the title-secondary color, with "Settings" slightly bolder (`font-semibold`)
+- The breadcrumb line should be full-width, centered, `text-lg`, `font-medium`
+- "Decks" should be ~40% opacity
+- The "/" separators should be ~50% opacity
+- Deck name + "Settings" should use the title-secondary color, with "Settings" slightly bolder (`font-semibold`)
+- Please also check the deck settings layout: the right-hand "settings" sidebar should no longer be locked to 280px and should be able to shrink with the page while still participating in the main flex row.
 
 # Lessons
 
 - Next.js 16 may report "Blocking Route" when a page does uncached data access at the top level. Fix by moving uncached `await` work into a component rendered inside `<Suspense>` with a fast fallback.
-
-
