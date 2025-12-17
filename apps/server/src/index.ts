@@ -18,6 +18,8 @@ import {
   studyRecord,
   userStudySettings,
   user,
+  DEFAULT_DECK_DISPLAY_SETTINGS,
+  type DeckDisplaySettings,
 } from "@benkyou/db";
 import { eq, desc, and, lte, gte, or, isNull, sql } from "drizzle-orm";
 import {
@@ -237,6 +239,213 @@ const deckRoutes = new Elysia({ prefix: "/api/decks" })
     {
       params: t.Object({
         id: t.String(),
+      }),
+      auth: true,
+    }
+  )
+  // Get deck settings (display settings and note type)
+  .get(
+    "/:id/settings",
+    async ({ params: { id }, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [foundDeck] = await db.select().from(deck).where(eq(deck.id, id));
+
+      if (!foundDeck) {
+        set.status = 404;
+        return { error: "Deck not found" };
+      }
+
+      // Ensure the deck belongs to the user
+      if (foundDeck.userId !== auth.user.id) {
+        set.status = 403;
+        return { error: "Unauthorized" };
+      }
+
+      // Get the note type associated with this deck (if any)
+      let deckNoteType = null;
+      if (foundDeck.noteTypeId) {
+        const [nt] = await db
+          .select()
+          .from(noteType)
+          .where(eq(noteType.id, foundDeck.noteTypeId));
+        deckNoteType = nt || null;
+      }
+
+      // If no note type is set for this deck, get or create a default one
+      if (!deckNoteType) {
+        // Try to find a "Sentence Mining" note type for the user
+        let [defaultNoteType] = await db
+          .select()
+          .from(noteType)
+          .where(
+            and(
+              eq(noteType.userId, auth.user.id),
+              eq(noteType.name, "Sentence Mining")
+            )
+          );
+
+        if (!defaultNoteType) {
+          // Create a default "Sentence Mining" note type with language learning fields
+          const noteTypeId = crypto.randomUUID();
+          const [newNoteType] = await db
+            .insert(noteType)
+            .values({
+              id: noteTypeId,
+              name: "Sentence Mining",
+              userId: auth.user.id,
+              fields: [
+                // Front side - the question/prompt
+                { name: "Target Word", type: "text", side: "front" },
+                { name: "Target Word Audio", type: "audio", side: "front" },
+                // Back side - the answer/details
+                { name: "Sentence", type: "text", side: "back" },
+                { name: "Reading", type: "reading", side: "back" },
+                { name: "Definition", type: "text", side: "back" },
+                { name: "Sentence Audio", type: "audio", side: "back" },
+                { name: "Image", type: "image", side: "back" },
+                { name: "Frequency", type: "number", side: "back" },
+              ],
+            })
+            .returning();
+          defaultNoteType = newNoteType;
+        }
+
+        deckNoteType = defaultNoteType;
+
+        // Update the deck to link to this note type
+        if (deckNoteType) {
+          await db
+            .update(deck)
+            .set({ noteTypeId: deckNoteType.id })
+            .where(eq(deck.id, id));
+        }
+      }
+
+      // Return deck settings with display settings and note type fields
+      return {
+        id: foundDeck.id,
+        name: foundDeck.name,
+        noteTypeId: foundDeck.noteTypeId || deckNoteType?.id,
+        displaySettings:
+          (foundDeck.displaySettings as DeckDisplaySettings) ||
+          DEFAULT_DECK_DISPLAY_SETTINGS,
+        noteType: deckNoteType
+          ? {
+              id: deckNoteType.id,
+              name: deckNoteType.name,
+              fields: deckNoteType.fields,
+            }
+          : null,
+      };
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      auth: true,
+    }
+  )
+  // Update deck settings (display settings and note type)
+  .put(
+    "/:id/settings",
+    async ({ params: { id }, body, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [foundDeck] = await db.select().from(deck).where(eq(deck.id, id));
+
+      if (!foundDeck) {
+        set.status = 404;
+        return { error: "Deck not found" };
+      }
+
+      // Ensure the deck belongs to the user
+      if (foundDeck.userId !== auth.user.id) {
+        set.status = 403;
+        return { error: "Unauthorized" };
+      }
+
+      // If noteTypeId is provided, verify it belongs to the user
+      if (body.noteTypeId) {
+        const [nt] = await db
+          .select()
+          .from(noteType)
+          .where(eq(noteType.id, body.noteTypeId));
+
+        if (!nt || nt.userId !== auth.user.id) {
+          set.status = 400;
+          return { error: "Invalid note type" };
+        }
+      }
+
+      // Merge display settings with defaults if partial update
+      const currentSettings =
+        (foundDeck.displaySettings as DeckDisplaySettings) ||
+        DEFAULT_DECK_DISPLAY_SETTINGS;
+      const updatedDisplaySettings: DeckDisplaySettings = body.displaySettings
+        ? {
+            ...currentSettings,
+            ...body.displaySettings,
+          }
+        : currentSettings;
+
+      // Update the deck
+      const [updatedDeck] = await db
+        .update(deck)
+        .set({
+          noteTypeId: body.noteTypeId ?? foundDeck.noteTypeId,
+          displaySettings: updatedDisplaySettings,
+        })
+        .where(eq(deck.id, id))
+        .returning();
+
+      // Get the note type for the response
+      let deckNoteType = null;
+      if (updatedDeck.noteTypeId) {
+        const [nt] = await db
+          .select()
+          .from(noteType)
+          .where(eq(noteType.id, updatedDeck.noteTypeId));
+        deckNoteType = nt || null;
+      }
+
+      return {
+        id: updatedDeck.id,
+        name: updatedDeck.name,
+        noteTypeId: updatedDeck.noteTypeId,
+        displaySettings:
+          (updatedDeck.displaySettings as DeckDisplaySettings) ||
+          DEFAULT_DECK_DISPLAY_SETTINGS,
+        noteType: deckNoteType
+          ? {
+              id: deckNoteType.id,
+              name: deckNoteType.name,
+              fields: deckNoteType.fields,
+            }
+          : null,
+      };
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Object({
+        noteTypeId: t.Optional(t.String()),
+        displaySettings: t.Optional(
+          t.Object({
+            theme: t.Optional(t.String()),
+            targetWordColor: t.Optional(t.String()),
+            fontFamily: t.Optional(t.String()),
+            fontSize: t.Optional(t.Number()),
+            fontWeight: t.Optional(t.Number()),
+          })
+        ),
       }),
       auth: true,
     }
@@ -1991,6 +2200,226 @@ const userRoutes = new Elysia({ prefix: "/api/user" })
     }
   );
 
+// Note Type routes for managing card templates
+const noteTypeRoutes = new Elysia({ prefix: "/api/note-types" })
+  .use(authMiddleware)
+  // Get all note types for the current user
+  .get(
+    "/",
+    async ({ auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const noteTypes = await db
+        .select()
+        .from(noteType)
+        .where(eq(noteType.userId, auth.user.id))
+        .orderBy(desc(noteType.createdAt));
+
+      return noteTypes;
+    },
+    {
+      auth: true,
+    }
+  )
+  // Get a single note type by ID
+  .get(
+    "/:id",
+    async ({ params: { id }, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [foundNoteType] = await db
+        .select()
+        .from(noteType)
+        .where(eq(noteType.id, id));
+
+      if (!foundNoteType) {
+        set.status = 404;
+        return { error: "Note type not found" };
+      }
+
+      // Ensure the note type belongs to the user
+      if (foundNoteType.userId !== auth.user.id) {
+        set.status = 403;
+        return { error: "Unauthorized" };
+      }
+
+      return foundNoteType;
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      auth: true,
+    }
+  )
+  // Create a new note type
+  .post(
+    "/",
+    async ({ body, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const noteTypeId = crypto.randomUUID();
+      const [newNoteType] = await db
+        .insert(noteType)
+        .values({
+          id: noteTypeId,
+          name: body.name,
+          userId: auth.user.id,
+          fields: body.fields,
+        })
+        .returning();
+
+      return newNoteType;
+    },
+    {
+      body: t.Object({
+        name: t.String({ minLength: 1, maxLength: 255 }),
+        fields: t.Array(
+          t.Object({
+            name: t.String({ minLength: 1 }),
+            type: t.String({ minLength: 1 }),
+          })
+        ),
+      }),
+      auth: true,
+    }
+  )
+  // Update a note type (name and/or fields)
+  .put(
+    "/:id",
+    async ({ params: { id }, body, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [foundNoteType] = await db
+        .select()
+        .from(noteType)
+        .where(eq(noteType.id, id));
+
+      if (!foundNoteType) {
+        set.status = 404;
+        return { error: "Note type not found" };
+      }
+
+      // Ensure the note type belongs to the user
+      if (foundNoteType.userId !== auth.user.id) {
+        set.status = 403;
+        return { error: "Unauthorized" };
+      }
+
+      // Build update object with only provided fields
+      const updateData: { name?: string; fields?: Array<{ name: string; type: string }> } = {};
+      if (body.name !== undefined) {
+        updateData.name = body.name;
+      }
+      if (body.fields !== undefined) {
+        updateData.fields = body.fields;
+      }
+
+      const [updatedNoteType] = await db
+        .update(noteType)
+        .set(updateData)
+        .where(eq(noteType.id, id))
+        .returning();
+
+      return updatedNoteType;
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Object({
+        name: t.Optional(t.String({ minLength: 1, maxLength: 255 })),
+        fields: t.Optional(
+          t.Array(
+            t.Object({
+              name: t.String({ minLength: 1 }),
+              type: t.String({ minLength: 1 }),
+            })
+          )
+        ),
+      }),
+      auth: true,
+    }
+  )
+  // Delete a note type
+  .delete(
+    "/:id",
+    async ({ params: { id }, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [foundNoteType] = await db
+        .select()
+        .from(noteType)
+        .where(eq(noteType.id, id));
+
+      if (!foundNoteType) {
+        set.status = 404;
+        return { error: "Note type not found" };
+      }
+
+      // Ensure the note type belongs to the user
+      if (foundNoteType.userId !== auth.user.id) {
+        set.status = 403;
+        return { error: "Unauthorized" };
+      }
+
+      // Check if any notes use this note type
+      const notesUsingType = await db
+        .select({ id: note.id })
+        .from(note)
+        .where(eq(note.noteTypeId, id))
+        .limit(1);
+
+      if (notesUsingType.length > 0) {
+        set.status = 400;
+        return {
+          error: "Cannot delete note type",
+          message: "This note type is in use by one or more notes",
+        };
+      }
+
+      // Check if any decks use this note type
+      const decksUsingType = await db
+        .select({ id: deck.id })
+        .from(deck)
+        .where(eq(deck.noteTypeId, id))
+        .limit(1);
+
+      if (decksUsingType.length > 0) {
+        set.status = 400;
+        return {
+          error: "Cannot delete note type",
+          message: "This note type is in use by one or more decks",
+        };
+      }
+
+      await db.delete(noteType).where(eq(noteType.id, id));
+
+      return { success: true };
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      auth: true,
+    }
+  );
+
 const app = new Elysia()
   .use(
     cors({
@@ -2018,6 +2447,7 @@ const app = new Elysia()
   .use(cardRoutes)
   .use(studyRoutes)
   .use(userRoutes)
+  .use(noteTypeRoutes)
   // Global error handler to catch and log errors (must be after routes)
   .onError(({ error, code, set, request }) => {
     // Ignore favicon requests to reduce noise in logs

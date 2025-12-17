@@ -60,3 +60,5 @@ The route currently awaits `params` and fetches deck data via `getDeck(id)` at t
 # Lessons
 
 - Next.js 16 may report "Blocking Route" when a page does uncached data access at the top level. Fix by moving uncached `await` work into a component rendered inside `<Suspense>` with a fast fallback.
+
+

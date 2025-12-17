@@ -101,6 +101,24 @@ export const accountRelations = relations(account, ({ one }) => ({
   }),
 }));
 
+// Display settings type for deck card appearance
+export interface DeckDisplaySettings {
+  theme: "dark" | "light" | string; // "dark", "light", or custom hex color
+  targetWordColor: string; // hex color like "#4FB4FF"
+  fontFamily: string; // "Rounded Mplus 1c", "Noto Sans JP", etc.
+  fontSize: number; // 16, 18, 20, etc.
+  fontWeight: number; // 400, 500, 600, etc.
+}
+
+// Default display settings for new decks
+export const DEFAULT_DECK_DISPLAY_SETTINGS: DeckDisplaySettings = {
+  theme: "dark",
+  targetWordColor: "#4FB4FF",
+  fontFamily: "Rounded Mplus 1c",
+  fontSize: 16,
+  fontWeight: 500,
+};
+
 // Deck table for flashcard decks
 export const deck = pgTable(
   "deck",
@@ -110,13 +128,23 @@ export const deck = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    // Optional reference to note type for this deck's card template
+    // If null, uses Basic note type
+    noteTypeId: text("note_type_id").references(() => noteType.id, {
+      onDelete: "set null",
+    }),
+    // Display settings for card appearance (theme, colors, fonts)
+    displaySettings: jsonb("display_settings").$type<DeckDisplaySettings>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("deck_userId_idx").on(table.userId)]
+  (table) => [
+    index("deck_userId_idx").on(table.userId),
+    index("deck_noteTypeId_idx").on(table.noteTypeId),
+  ]
 );
 
 // Note Type table for customizable card templates (like Anki note types)
@@ -308,6 +336,10 @@ export const deckRelations = relations(deck, ({ one, many }) => ({
     fields: [deck.userId],
     references: [user.id],
   }),
+  noteType: one(noteType, {
+    fields: [deck.noteTypeId],
+    references: [noteType.id],
+  }),
   cards: many(card),
   notes: many(note),
   studySessions: many(studySession),
@@ -320,6 +352,7 @@ export const noteTypeRelations = relations(noteType, ({ one, many }) => ({
     references: [user.id],
   }),
   notes: many(note),
+  decks: many(deck),
 }));
 
 // Relations for notes
