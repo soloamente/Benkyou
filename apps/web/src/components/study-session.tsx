@@ -518,7 +518,7 @@ export function StudySession({
       {/* Breadcrumb Navigation - centered at top */}
       <div className="flex w-full justify-center">
         <div className="text-lg gap-2 flex items-center font-medium">
-          <Link href="/dashboard" className="text-title-secondary">
+          <Link href="/decks" className="text-title-secondary">
             Decks
           </Link>
           <span className="text-title-secondary">/</span>

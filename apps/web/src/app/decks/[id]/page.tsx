@@ -51,19 +51,19 @@ async function DeckDetailContent({
 
     if (!response.ok) {
       // If deck not found or unauthorized, redirect to dashboard
-      redirect("/dashboard");
+      redirect("/decks");
     }
 
     deck = await response.json();
   } catch (error) {
     // If fetch fails, redirect to dashboard
     console.error("Error fetching deck:", error);
-    redirect("/dashboard");
+    redirect("/decks");
   }
 
   // Verify the deck belongs to the user (double check on server side)
   if (deck.userId !== session.user.id) {
-    redirect("/dashboard");
+    redirect("/decks");
   }
 
   return (

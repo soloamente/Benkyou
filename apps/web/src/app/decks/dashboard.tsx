@@ -11,8 +11,10 @@ import { getDueCards, getNewCards, getLearningCards } from "@/lib/study-api";
 import { CreateDeckDialog } from "@/components/create-deck-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import Image from "next/image";
 
 // Temporary types for display - will be enhanced when card system is implemented
+// coverImage is now part of ApiDeck from the database
 interface Deck extends ApiDeck {
   dueCount: number;
   newCount: number;
@@ -20,7 +22,7 @@ interface Deck extends ApiDeck {
   totalCards: number;
 }
 
-export default function Dashboard({
+export default function DecksDashboard({
   session,
 }: {
   session: typeof authClient.$Infer.Session;
@@ -96,7 +98,7 @@ export default function Dashboard({
   };
 
   const handleDeckClick = (deckId: string) => {
-    router.push(`/dashboard/decks/${deckId}`);
+    router.push(`/decks/${deckId}`);
   };
 
   const handleDeckCreated = async (newDeck: ApiDeck) => {
@@ -112,7 +114,7 @@ export default function Dashboard({
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto p-6">
+    <div className="flex flex-col h-full">
       {isLoadingDecks ? (
         <div className="flex items-center justify-center h-full">
           <Spinner className="size-6" />
@@ -160,49 +162,68 @@ export default function Dashboard({
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="aspect-4/2 rounded-2xl border-2 border-border bg-background p-4 flex flex-col justify-between cursor-pointer hover:border-primary/50 transition-colors"
+                  className="w-[413px] h-[236px] rounded-[1.25rem] gap-2.5 bg-background p-2.5 flex justify-start items-center cursor-pointer hover:border-primary/50 transition-colors"
                   onClick={() => handleDeckClick(deck.id)}
                 >
-                  <div className="flex justify-between ">
-                    <h3 className="text-3xl leading-none text-title ">
+                  {/* Cover image or fallback placeholder with deck name */}
+                  <div className="w-[140px] h-full   relative flex items-center justify-center rounded-[0.625rem] overflow-hidden">
+                    {deck.coverImage ? (
+                      <Image
+                        src={deck.coverImage}
+                        alt={deck.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      // Fallback: show deck name on a gradient background
+                      <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <span className="text-lg font-semibold text-title truncate px-3">
+                          {deck.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col justify-between p-2.5 h-full">
+                    <h3 className="text-2xl font-medium leading-none text-title ">
                       {deck.name}
                     </h3>
-                    {/* Card Statistics - Anki style */}
-                    <div className="text-3xl text-title-secondary">
-                      {deck.totalCards} card
-                      {deck.totalCards !== 1 ? "s" : ""}{" "}
-                    </div>
-                  </div>
 
-                  <div className="flex justify-end gap-8">
-                    <div className="flex items-center flex-col ">
-                      <span className="text-2xl font-semibold text-blue-600">
-                        {deck.newCount}
-                      </span>
-                      <span className=" text-title-secondary">New</span>
-                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex items-center flex-col ">
+                        <span className="text-2xl text-[#4FB4FF]">
+                          {deck.newCount}
+                        </span>
+                        <span className=" text-title text-xs font-normal">
+                          New
+                        </span>
+                      </div>
 
-                    <div className="flex items-center flex-col ">
-                      <span className="text-2xl font-semibold text-orange-600">
-                        {deck.learnCount}
-                      </span>
-                      <span className=" text-title-secondary">Relearn</span>
-                    </div>
+                      <div className="flex items-center flex-col ">
+                        <span className="text-2xl text-[#FF4F4F]">
+                          {deck.learnCount}
+                        </span>
+                        <span className=" text-title text-xs font-normal">
+                          Relearn
+                        </span>
+                      </div>
 
-                    <div className="flex items-center flex-col ">
-                      <span className="text-2xl font-semibold text-primary">
-                        {deck.dueCount}
-                      </span>
-                      <span className=" text-title-secondary">Review</span>
-                    </div>
+                      <div className="flex items-center flex-col ">
+                        <span className="text-2xl text-[#24CF05]">
+                          {deck.dueCount}
+                        </span>
+                        <span className=" text-title text-xs font-normal">
+                          Review
+                        </span>
+                      </div>
 
-                    {deck.dueCount === 0 &&
-                      deck.learnCount === 0 &&
-                      deck.newCount === 0 && (
-                        <div className="text-xs text-title-secondary">
-                          No cards to study
-                        </div>
-                      )}
+                      {deck.dueCount === 0 &&
+                        deck.learnCount === 0 &&
+                        deck.newCount === 0 && (
+                          <div className="text-xs text-title-secondary">
+                            No cards to study
+                          </div>
+                        )}
+                    </div>
                   </div>
                 </motion.div>
               ))}

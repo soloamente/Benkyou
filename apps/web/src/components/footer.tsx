@@ -19,7 +19,7 @@ const footerLinks: { category: string; links: FooterLink[] }[] = [
     links: [
       { label: "Features", href: "#features" },
       { label: "Pricing", href: "#pricing" },
-      { label: "Dashboard", href: "/dashboard" },
+      { label: "Decks", href: "/decks" },
     ],
   },
   {

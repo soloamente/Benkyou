@@ -36,15 +36,21 @@ export default function SignInForm({
               // Refresh session to ensure it's up to date
               const session = await authClient.getSession();
               // If user doesn't have a name, they need to complete onboarding
-              if (!session?.data?.user?.name || session.data.user.name.trim() === "") {
+              if (
+                !session?.data?.user?.name ||
+                session.data.user.name.trim() === ""
+              ) {
                 router.replace("/onboarding");
               } else {
-                router.replace("/dashboard");
+                router.replace("/decks");
               }
             },
             onError: (error) => {
               // Error handling can be added here if needed
-              console.error("Sign in error:", error.error.message || error.error.statusText);
+              console.error(
+                "Sign in error:",
+                error.error.message || error.error.statusText
+              );
             },
           }
         );
@@ -228,7 +234,7 @@ export default function SignInForm({
                         transition={{ duration: 0.2 }}
                         className="leading-none"
                       >
-                        Sign in
+                        Login
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -245,7 +251,7 @@ export default function SignInForm({
           onClick={onSwitchToSignUp}
           className="h-auto text-primary cursor-pointer underline-offset-2 hover:underline"
         >
-          Sign up
+          Create an account
         </button>
       </div>
     </motion.div>

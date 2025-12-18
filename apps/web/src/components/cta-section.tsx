@@ -38,36 +38,13 @@ export default function CTASection({ className }: CTASectionProps) {
             Get Started Free
           </Link>
           <Link
-            href="/dashboard"
+            href="/decks"
             className="border border-border rounded-full px-8 py-4 font-semibold hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            View Dashboard
+            View Your Decks
           </Link>
         </div>
       </motion.div>
     </section>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

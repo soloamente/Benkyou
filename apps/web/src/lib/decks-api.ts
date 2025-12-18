@@ -19,6 +19,7 @@ export interface Deck {
   id: string;
   name: string;
   userId: string;
+  coverImage?: string | null; // Optional cover image URL
   createdAt: Date;
   updatedAt: Date;
 }
@@ -107,7 +108,7 @@ export async function getDeck(id: string): Promise<Deck> {
 // Update a deck
 export async function updateDeck(
   id: string,
-  data: UpdateDeckRequest,
+  data: UpdateDeckRequest
 ): Promise<Deck> {
   const response = await fetch(`${API_BASE_URL}/api/decks/${id}`, {
     method: "PUT",

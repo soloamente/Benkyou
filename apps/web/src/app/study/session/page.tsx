@@ -206,7 +206,7 @@ function StudySessionContent() {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.push("/decks")}
                 className="flex-1"
               >
                 <ArrowLeft className="size-4 mr-2" />

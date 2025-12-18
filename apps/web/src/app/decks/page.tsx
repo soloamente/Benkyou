@@ -1,13 +1,15 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import Dashboard from "./dashboard";
+import DecksDashboard from "./dashboard";
 import { headers } from "next/headers";
 import { auth } from "@benkyou/auth";
 import { BottomNavbar } from "@/components/bottom-navbar";
-
+import { Spinner } from "@components/ui/spinner";
+import Navbar from "@/components/navbar";
 // Extract dynamic data fetching to a separate component
 // This component accesses headers and makes API calls, so it needs to be wrapped in Suspense
-async function DashboardContent() {
+
+async function DecksPageContent() {
   // Get headers for server-side session retrieval
   const headersList = await headers();
 
@@ -76,8 +78,11 @@ async function DashboardContent() {
 
   return (
     <main className="m-2.5 bg-background h-screen overflow-y-auto">
-      <div className="bg-card rounded-3xl h-full overflow-hidden p-5 font-medium mx-auto w-full pb-24">
-        <Dashboard session={session} />
+      <div className="bg-card p-2.5 rounded-3xl gap-2.5 flex flex-col h-full overflow-hidden font-medium mx-auto w-full">
+        <Navbar />
+        <div className="flex flex-col gap-3.75">
+          <DecksDashboard session={session} />
+        </div>
       </div>
       <BottomNavbar />
     </main>
@@ -90,17 +95,17 @@ function DashboardLoading() {
     <main className="m-2.5 bg-background h-screen overflow-y-auto">
       <div className="bg-card rounded-3xl h-full overflow-hidden p-5 font-medium mx-auto w-full pb-24">
         <div className="flex items-center justify-center h-full">
-          <p className="text-muted-foreground">Loading...</p>
+          <Spinner />
         </div>
       </div>
     </main>
   );
 }
 
-export default function DashboardPage() {
+export default function DecksPage() {
   return (
     <Suspense fallback={<DashboardLoading />}>
-      <DashboardContent />
+      <DecksPageContent />
     </Suspense>
   );
 }

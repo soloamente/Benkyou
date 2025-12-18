@@ -117,7 +117,7 @@ export default function DeckDetail({
           <button
             type="button"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/decks")}
           >
             <ArrowLeft className="size-4 mr-2" />
             Back to Dashboard

@@ -7,6 +7,23 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   // Transpile workspace packages that contain TypeScript
   transpilePackages: ["@benkyou/fsrs"],
+  // Configure allowed external image domains for deck covers
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "pbs.twimg.com", // Twitter images
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com", // Unsplash images
+      },
+      {
+        protocol: "https",
+        hostname: "i.imgur.com", // Imgur images
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

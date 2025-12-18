@@ -12,7 +12,7 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isPending && session?.user) {
-      router.push("/dashboard");
+      router.push("/decks");
     }
   }, [session, isPending, router]);
 

@@ -13,7 +13,11 @@ import {
   DEFAULT_DECK_DISPLAY_SETTINGS,
 } from "@/lib/deck-settings-api";
 import { updateNoteType } from "@/lib/note-types-api";
-import { CardPreview, FieldList, DisplayControls } from "@/components/deck-settings";
+import {
+  CardPreview,
+  FieldList,
+  DisplayControls,
+} from "@/components/deck-settings";
 import { Spinner } from "@/components/ui/spinner";
 import IconArrowDown from "@components/icons/arrow-down";
 import IconCheck3 from "@components/icons/check-3";
@@ -23,18 +27,20 @@ interface DeckSettingsClientProps {
   deckName: string;
 }
 
-export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps) {
+export function DeckSettingsClient({
+  deckId,
+  deckName,
+}: DeckSettingsClientProps) {
   // State
   const [settings, setSettings] = useState<DeckSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cardSide, setCardSide] = useState<"front" | "back">("front");
-  
+
   // Local state for unsaved changes
-  const [localDisplaySettings, setLocalDisplaySettings] = useState<DeckDisplaySettings>(
-    DEFAULT_DECK_DISPLAY_SETTINGS
-  );
+  const [localDisplaySettings, setLocalDisplaySettings] =
+    useState<DeckDisplaySettings>(DEFAULT_DECK_DISPLAY_SETTINGS);
   const [localFields, setLocalFields] = useState<NoteTypeField[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -66,7 +72,9 @@ export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps
         setLocalFields(fieldsWithSide);
       } catch (err) {
         console.error("Error fetching deck settings:", err);
-        setError(err instanceof Error ? err.message : "Failed to load settings");
+        setError(
+          err instanceof Error ? err.message : "Failed to load settings"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -76,7 +84,9 @@ export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps
   }, [deckId]);
 
   // Handle display settings change
-  const handleDisplaySettingsChange = (newSettings: Partial<DeckDisplaySettings>) => {
+  const handleDisplaySettingsChange = (
+    newSettings: Partial<DeckDisplaySettings>
+  ) => {
     setLocalDisplaySettings((prev) => ({ ...prev, ...newSettings }));
     setHasUnsavedChanges(true);
   };
@@ -120,7 +130,7 @@ export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps
     }
     const field = currentSideFields[fieldIndex];
     if (!field) return;
-    
+
     const fieldName = field.name;
     // Remove the field from localFields by finding the matching field
     const newFields = localFields.filter(
@@ -159,7 +169,9 @@ export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps
       toast.success("Settings saved successfully!");
     } catch (err) {
       console.error("Error saving settings:", err);
-      toast.error(err instanceof Error ? err.message : "Failed to save settings");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save settings"
+      );
     } finally {
       setIsSaving(false);
     }
@@ -196,7 +208,7 @@ export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps
       <main className="flex flex-col h-screen bg-background gap-3.75 m-5">
         <div className="w-full">
           <div className="flex w-full gap-2 items-center justify-center font-medium text-lg text-center align-middle">
-            <Link href="/dashboard" className="text-title-secondary opacity-40">
+            <Link href="/decks" className="text-title-secondary opacity-40">
               Decks
             </Link>
             <span className="text-title-secondary opacity-50">&gt;</span>
@@ -225,11 +237,17 @@ export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps
       {/* Breadcrumb Navigation - centered at top */}
       <div className="w-full">
         <div className="flex w-full gap-2 items-center justify-center font-medium text-lg text-center align-middle">
-          <Link href="/dashboard" className="text-title-secondary opacity-40 hover:opacity-60 transition-opacity duration-200 ease">
+          <Link
+            href="/decks"
+            className="text-title-secondary opacity-40 hover:opacity-60 transition-opacity duration-200 ease"
+          >
             Decks
           </Link>
           <span className="text-title-secondary opacity-50">&gt;</span>
-          <Link href={`/dashboard/decks/${deckId}`} className="text-title-secondary hover:opacity-80 transition-opacity duration-200 ease">
+          <Link
+            href={`/decks/${deckId}`}
+            className="text-title-secondary hover:opacity-80 transition-opacity duration-200 ease"
+          >
             {deckName}
           </Link>
           <span className="text-title-secondary opacity-50">&gt;</span>
@@ -240,7 +258,7 @@ export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps
       {/* Main content section */}
       <div className="flex gap-2.5 w-full h-full min-h-0">
         {/* Left: Card preview and display controls */}
-        <div className="h-full w-full flex flex-col gap-2.5 flex-[6]">
+        <div className="h-full w-full flex flex-col gap-2.5 flex-6">
           {/* Card Preview */}
           <CardPreview
             side={cardSide}
@@ -274,7 +292,9 @@ export function DeckSettingsClient({ deckId, deckName }: DeckSettingsClientProps
               disabled={isSaving || !hasUnsavedChanges}
               className="bg-primary flex-1 cursor-pointer h-fit font-semibold text-primary-foreground w-full justify-between flex items-center gap-5 rounded-4xl pl-5 pr-2.5 py-2.5 leading-none hover:bg-primary/90 transition-colors duration-200 ease disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <p className="text-left">{isSaving ? "Saving..." : "Save settings"}</p>
+              <p className="text-left">
+                {isSaving ? "Saving..." : "Save settings"}
+              </p>
               <div className="flex gap-1.25">
                 <div className="flex flex-col cursor-pointer rounded-full text-primary justify-center items-center bg-background w-[30px] h-[30px]">
                   <IconCheck3 size={18} strokeWidth={3} />

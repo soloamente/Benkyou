@@ -10,9 +10,9 @@ import IconHome from "@icons/home";
 // Navigation items configuration
 const navItems = [
   {
-    href: "/dashboard",
+    href: "/decks",
     icon: IconHome,
-    label: "Dashboard",
+    label: "Decks",
   },
   {
     href: "/stats",
@@ -48,10 +48,8 @@ export function BottomNavbar() {
 
   // Check if current path matches a nav item
   const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return (
-        pathname === "/dashboard" || pathname?.startsWith("/dashboard/decks")
-      );
+    if (href === "/decks") {
+      return pathname === "/decks" || pathname?.startsWith("/decks");
     }
     return pathname === href;
   };
@@ -65,7 +63,7 @@ export function BottomNavbar() {
   const handleAvatarClick = () => {
     // For now, just navigate to dashboard
     // You can change this to navigate to a profile/settings page later
-    router.push("/dashboard" as any); // Type assertion needed for typed routes
+    router.push("/decks" as any); // Type assertion needed for typed routes
   };
 
   return (

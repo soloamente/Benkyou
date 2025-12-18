@@ -95,18 +95,18 @@ export default function OnboardingClient({ session }: OnboardingPageProps) {
       // Mark onboarding as skipped/completed so user can access dashboard
       const response = await skipOnboarding();
       if (response.success) {
-        router.push("/dashboard");
+        router.push("/decks");
       } else {
         console.error("Failed to skip onboarding:", response.error);
         // Still redirect to dashboard even if API call fails
         // (fail open - better UX than blocking access)
-        router.push("/dashboard");
+        router.push("/decks");
       }
     } catch (error) {
       console.error("Error skipping onboarding:", error);
       // Still redirect to dashboard even if there's an error
       // (fail open - better UX than blocking access)
-      router.push("/dashboard");
+      router.push("/decks");
     } finally {
       setIsSkipping(false);
     }
@@ -131,7 +131,7 @@ export default function OnboardingClient({ session }: OnboardingPageProps) {
 
       if (response.success) {
         // Redirect to dashboard on success
-        router.push("/dashboard");
+        router.push("/decks");
       } else {
         // Handle error
         console.error("Failed to complete onboarding:", response.error);
@@ -702,7 +702,7 @@ export default function OnboardingClient({ session }: OnboardingPageProps) {
               ease: [0.25, 0.46, 0.45, 0.94], // ease-out-quad
             }}
             style={{ transformOrigin: "left top" }}
-            className="flex flex-col space-y-2 rounded-3xl border border-border h-[520px] w-[640px]  p-6 "
+            className="flex flex-col space-y-2 rounded-4xl border border-border h-[520px] w-[640px]  p-6 "
           >
             <div className="space-y-2 space-x-4 grid grid-cols-[calc(50%-0.5px)_1px_calc(50%-0.5px)] flex-1">
               <div className="flex flex-col space-y-6 px-2 py-6">

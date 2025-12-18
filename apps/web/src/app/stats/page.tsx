@@ -24,9 +24,7 @@ function StatsContent() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() =>
-              router.push(deckId ? `/dashboard/decks/${deckId}` : "/dashboard")
-            }
+            onClick={() => router.push(deckId ? `/decks/${deckId}` : "/decks")}
             className="mb-4"
           >
             <ArrowLeft className="size-4 mr-2" />

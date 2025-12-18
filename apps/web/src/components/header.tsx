@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 export default function Header() {
   const links = [
     { to: "/", label: "Home" },
-    { to: "/dashboard", label: "Dashboard" },
+    { to: "/decks", label: "Decks" },
   ] as const;
 
   const [isScrolling, setIsScrolling] = useState(false);
@@ -43,7 +43,7 @@ export default function Header() {
         >
           {isScrolling ? "Join Waitlist" : "Login"}
         </Link>
-        <Link href="/dashboard"></Link>
+        <Link href="/decks"></Link>
       </div>
       {/* <nav className="flex gap-4 text-lg w-full">
         {links.map(({ to, label }) => {

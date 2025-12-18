@@ -135,6 +135,8 @@ export const deck = pgTable(
     }),
     // Display settings for card appearance (theme, colors, fonts)
     displaySettings: jsonb("display_settings").$type<DeckDisplaySettings>(),
+    // Optional cover image URL for the deck
+    coverImage: text("cover_image"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

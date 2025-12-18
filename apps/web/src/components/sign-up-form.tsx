@@ -259,7 +259,7 @@ export default function SignUpForm({
           onClick={onSwitchToSignIn}
           className="h-auto p-0 text-primary cursor-pointer underline-offset-4 hover:underline bg-transparent border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          Sign in
+          Login
         </button>
       </div>
     </div>

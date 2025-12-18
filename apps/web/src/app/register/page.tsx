@@ -17,7 +17,7 @@ export default function RegisterPage() {
       if (!session.user.name || session.user.name.trim() === "") {
         router.push("/onboarding");
       } else {
-        router.push("/dashboard");
+        router.push("/decks");
       }
     }
   }, [session, isPending, router]);
