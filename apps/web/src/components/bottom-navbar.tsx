@@ -76,15 +76,14 @@ export function BottomNavbar() {
       }}
       className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-fit"
     >
-      <div className="bg-background border-2 border-border flex items-center justify-between gap-2 rounded-full px-1.5 py-1.5 ">
+      <div className="flex items-center justify-between gap-2 rounded-full px-1.5 py-1.5 ">
         <div className="flex items-center justify-between gap-2">
           {/* User Avatar - First Item */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleAvatarClick}
             className={cn(
-              "relative shrink-0 size-8 rounded-full overflow-hidden",
+              "relative shrink-0 size-8 rounded-full overflow-hidden cursor-pointer",
               "bg-primary/10 border-2 border-border",
               "flex items-center justify-center",
               "transition-colors hover:bg-primary/20"
@@ -105,47 +104,31 @@ export function BottomNavbar() {
           </motion.button>
           <div className="w-px h-full bg-card" />
           {/* Navigation Icons */}
-          <div className="flex items-center gap-1 justify-center">
+          <div className="flex items-center justify-center">
             {navItems.map((item) => {
-              const Icon = item.icon;
               const active = isActive(item.href);
 
               return (
                 <motion.button
                   key={item.href}
-                  whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleNavClick(item.href)}
                   className={cn(
-                    "relative flex items-center justify-center cursor-pointer",
-                    "size-8 rounded-full",
+                    "relative flex bg-[#212121] items-center justify-center w-fit text-sm cursor-pointer px-5 py-2.5 leading-none",
+                    "rounded-full",
                     "transition-colors",
                     active
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-background text-primary"
                       : "text-title-secondary hover:bg-accent hover:text-title"
                   )}
                   aria-label={item.label}
                   aria-current={active ? "page" : undefined}
                 >
-                  <Icon className="size-5" />
-                  {active && (
-                    <motion.div
-                      layoutId="activeNavIndicator"
-                      className="absolute inset-0 rounded-full bg-primary -z-10"
-                      transition={{
-                        type: "spring",
-                        stiffness: 380,
-                        damping: 30,
-                      }}
-                    />
-                  )}
+                  {item.label}
                 </motion.button>
               );
             })}
           </div>
-
-          {/* Spacer to balance the layout */}
-          <div className="size-8 shrink-0" />
         </div>
       </div>
     </motion.nav>

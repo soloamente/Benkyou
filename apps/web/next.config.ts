@@ -51,6 +51,16 @@ const nextConfig: NextConfig = {
         source: "/api/user/:path*",
         destination: `${process.env.SERVER_URL || "http://localhost:3000"}/api/user/:path*`,
       },
+      {
+        // Proxy all /api/admin/* requests to the Elysia server
+        source: "/api/admin/:path*",
+        destination: `${process.env.SERVER_URL || "http://localhost:3000"}/api/admin/:path*`,
+      },
+      {
+        // Proxy all /api/note-types/* requests to the Elysia server
+        source: "/api/note-types/:path*",
+        destination: `${process.env.SERVER_URL || "http://localhost:3000"}/api/note-types/:path*`,
+      },
     ];
   },
 };

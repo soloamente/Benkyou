@@ -18,18 +18,24 @@ const API_BASE_URL = getBaseURL();
 export interface Deck {
   id: string;
   name: string;
+  description?: string | null; // Optional description for the deck
   userId: string;
   coverImage?: string | null; // Optional cover image URL
+  subject?: string | null; // Optional subject/category for grouping decks
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateDeckRequest {
   name: string;
+  description?: string | null; // Optional description for the deck
+  subject?: string | null; // Optional subject/category for grouping decks
 }
 
 export interface UpdateDeckRequest {
   name: string;
+  description?: string | null; // Optional description for the deck
+  subject?: string | null; // Optional subject/category for grouping decks
 }
 
 // Helper function to get auth headers with cookies

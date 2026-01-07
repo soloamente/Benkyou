@@ -124,6 +124,7 @@ export default function DeckDetail({
           </button>
           <div>
             <h1 className="text-3xl font-bold">{deck.name}</h1>
+            <p className="text-title-secondary">{deck.description}</p>
             <p className="text-muted-foreground">
               {cards.length} card{cards.length === 1 ? "" : "s"}
             </p>

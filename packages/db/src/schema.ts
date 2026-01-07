@@ -21,6 +21,11 @@ export const user = pgTable("user", {
   username: text("username").unique(),
   displayUsername: text("display_username").unique(),
   bio: text("bio"),
+  // Better Auth admin plugin fields
+  role: text("role"),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -43,6 +48,8 @@ export const session = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    // Better Auth admin plugin field
+    impersonatedBy: text("impersonated_by"),
   },
   (table) => [index("session_userId_idx").on(table.userId)]
 );
@@ -125,6 +132,7 @@ export const deck = pgTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    description: text("description"), // Optional description for the deck
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
@@ -137,6 +145,8 @@ export const deck = pgTable(
     displaySettings: jsonb("display_settings").$type<DeckDisplaySettings>(),
     // Optional cover image URL for the deck
     coverImage: text("cover_image"),
+    // Subject/category for grouping decks (e.g., "Japanese", "Korean", "Math", "Exam preparation")
+    subject: text("subject"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -332,6 +342,29 @@ export const userStudySettings = pgTable(
   (table) => [index("user_study_settings_userId_idx").on(table.userId)]
 );
 
+// Waitlist table for managing waitlist entries
+export const waitlist = pgTable(
+  "waitlist",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull().unique(),
+    name: text("name"),
+    status: text("status")
+      .notNull()
+      .default("pending")
+      .$type<"pending" | "approved" | "rejected">(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("waitlist_email_idx").on(table.email),
+    index("waitlist_status_idx").on(table.status),
+  ]
+);
+
 // Relations for decks
 export const deckRelations = relations(deck, ({ one, many }) => ({
   user: one(user, {
@@ -448,6 +481,7 @@ export const schema = {
   studySession,
   studyRecord,
   userStudySettings,
+  waitlist,
   userRelations,
   sessionRelations,
   accountRelations,

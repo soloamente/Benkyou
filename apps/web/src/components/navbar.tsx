@@ -1,47 +1,83 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import { cn } from "@lib/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { getDecks } from "@/lib/decks-api";
+
+export type Subject = string;
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedSubject = searchParams.get("subject") || "All";
+  const [subjects, setSubjects] = useState<string[]>(["All"]);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
+
+  // Fetch decks to extract unique subjects
+  useEffect(() => {
+    const loadDecks = async () => {
+      try {
+        const fetchedDecks = await getDecks();
+        // Extract unique subjects from decks (excluding null/undefined)
+        const uniqueSubjects = new Set<string>();
+        fetchedDecks.forEach((deck) => {
+          if (deck.subject) {
+            uniqueSubjects.add(deck.subject);
+          }
+        });
+        // Always include "All" as the first option, then sorted unique subjects
+        setSubjects(["All", ...Array.from(uniqueSubjects).sort()]);
+      } catch (error) {
+        console.error("Error loading decks for subjects:", error);
+        setSubjects(["All"]);
+      } finally {
+        setIsLoadingSubjects(false);
+      }
+    };
+    loadDecks();
+  }, []);
+
+  const handleSubjectClick = (subject: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (subject === "All") {
+      params.delete("subject");
+    } else {
+      params.set("subject", subject);
+    }
+    router.push(`${pathname}?${params.toString()}` as any);
+  };
+
   return (
-    <div className="overflow-hidden font-normal justify-between flex w-full items-center">
-      <div className="flex gap-1.25">
-        <div
-          className={cn(
-            pathname === "/decks"
-              ? "bg-background"
-              : "bg-background/45 text-[#7c7c7c] font-medium",
-            "text-sm w-fit rounded-full px-5 leading-none py-2.5 cursor-pointer"
-          )}
-        >
-          <p>Japanese</p>
-        </div>
-        <div
-          className={cn(
-            "bg-background/45 text-[#7c7c7c] font-medium",
-            "text-sm w-fit rounded-full px-5 leading-none py-2.5 cursor-pointer"
-          )}
-        >
-          <p>Korean</p>
-        </div>
-        <div
-          className={cn(
-            "bg-background/45 text-[#7c7c7c] font-medium",
-            "text-sm w-fit rounded-full px-5 leading-none py-2.5 cursor-pointer"
-          )}
-        >
-          <p>Math</p>
-        </div>
-        <div
-          className={cn(
-            "bg-background/45 text-[#7c7c7c] font-medium",
-            "text-sm w-fit rounded-full px-5 leading-none py-2.5 cursor-pointer"
-          )}
-        >
-          <p>Exam preparation</p>
-        </div>
+    <nav className="overflow-hidden font-normal justify-between flex w-full items-center">
+      <div className="flex">
+        {isLoadingSubjects ? (
+          <div className="text-sm text-[#7c7c7c] font-medium px-5 py-2.5">
+            Loading...
+          </div>
+        ) : (
+          subjects.map((subject) => {
+            const isActive =
+              subject === "All"
+                ? selectedSubject === "All" || !searchParams.has("subject")
+                : selectedSubject === subject;
+            return (
+              <button
+                key={subject}
+                onClick={() => handleSubjectClick(subject)}
+                className={cn(
+                  isActive
+                    ? "bg-background"
+                    : "bg-background/45 text-[#7c7c7c] font-medium",
+                  "text-sm w-fit rounded-full px-5 leading-none py-2.5 cursor-pointer transition-colors"
+                )}
+              >
+                <p>{subject}</p>
+              </button>
+            );
+          })
+        )}
       </div>
       <div className="flex gap-1.25 items-center">
         <button className="text-sm w-fit rounded-full px-5 bg-background text-[#7c7c7c] font-medium py-2.5 cursor-pointer leading-none">
@@ -63,6 +99,6 @@ export default function Navbar() {
           </div>
         </label>{" "}
       </div>
-    </div>
+    </nav>
   );
 }

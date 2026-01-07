@@ -1,7 +1,7 @@
 import type { auth } from "@benkyou/auth";
 import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields } from "better-auth/client/plugins";
-import { usernameClient } from "better-auth/client/plugins";
+import { usernameClient, adminClient } from "better-auth/client/plugins";
 
 // Use Next.js app URL for proxy - requests will be proxied to Elysia server via Next.js rewrites
 // In browser, use window.location.origin; fallback to env var for SSR
@@ -20,5 +20,6 @@ export const authClient = createAuthClient({
   plugins: [
     inferAdditionalFields<typeof auth>(),
     usernameClient(), // Add username client plugin
+    adminClient(), // Add admin client plugin
   ],
 });

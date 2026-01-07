@@ -18,6 +18,8 @@ import {
   studyRecord,
   userStudySettings,
   user,
+  session,
+  waitlist,
   DEFAULT_DECK_DISPLAY_SETTINGS,
   type DeckDisplaySettings,
 } from "@benkyou/db";
@@ -79,6 +81,79 @@ const authMiddleware = new Elysia({ name: "better-auth" }).macro({
   },
 });
 
+// Admin middleware - checks if user is admin
+// Must be used after authMiddleware
+const adminMiddleware = new Elysia({ name: "admin" }).macro({
+  admin: {
+    async resolve({ auth, status }) {
+      try {
+        if (!auth?.user) {
+          console.log("Admin middleware - No auth user found");
+          return status(401, { error: "Unauthorized" });
+        }
+
+        console.log(
+          `Admin middleware - Checking admin status for user: ${auth.user.id} (${auth.user.email})`
+        );
+
+        // Get user from database to check role
+        const [userData] = await db
+          .select({ role: user.role, email: user.email })
+          .from(user)
+          .where(eq(user.id, auth.user.id));
+
+        console.log(`Admin middleware - User data from DB:`, {
+          id: auth.user.id,
+          email: userData?.email,
+          role: userData?.role,
+          roleType: typeof userData?.role,
+        });
+
+        if (!userData) {
+          console.log(
+            `Admin middleware - User ${auth.user.id} not found in database`
+          );
+          return status(403, { error: "Forbidden: User not found" });
+        }
+
+        // Check if user has admin role
+        // Better Auth admin plugin uses "admin" role by default
+        const isAdmin =
+          userData?.role === "admin" ||
+          userData?.role?.toLowerCase() === "admin" ||
+          (typeof userData?.role === "string" &&
+            userData.role.toLowerCase().includes("admin")) ||
+          false;
+
+        console.log(`Admin middleware - Is admin check:`, {
+          role: userData.role,
+          roleEqualsAdmin: userData?.role === "admin",
+          roleLowercaseEqualsAdmin: userData?.role?.toLowerCase() === "admin",
+          roleIncludesAdmin:
+            typeof userData?.role === "string" &&
+            userData.role.toLowerCase().includes("admin"),
+          finalIsAdmin: isAdmin,
+        });
+
+        if (!isAdmin) {
+          console.log(
+            `Admin middleware - User ${auth.user.id} (${auth.user.email}) is NOT an admin. Role: "${userData.role}"`
+          );
+          return status(403, { error: "Forbidden: Admin access required" });
+        }
+
+        console.log(
+          `Admin middleware - ✅ User ${auth.user.id} (${auth.user.email}) IS an admin`
+        );
+        return {};
+      } catch (error) {
+        console.error("Admin middleware error:", error);
+        return status(500, { error: "Authorization error" });
+      }
+    },
+  },
+});
+
 // Deck routes
 const deckRoutes = new Elysia({ prefix: "/api/decks" })
   .use(authMiddleware)
@@ -95,6 +170,8 @@ const deckRoutes = new Elysia({ prefix: "/api/decks" })
         .values({
           id: crypto.randomUUID(),
           name: body.name,
+          description: body.description ?? null,
+          subject: body.subject ?? null,
           userId: auth.user.id,
         })
         .returning();
@@ -104,6 +181,8 @@ const deckRoutes = new Elysia({ prefix: "/api/decks" })
     {
       body: t.Object({
         name: t.String({ minLength: 1, maxLength: 255 }),
+        description: t.Optional(t.Nullable(t.String())),
+        subject: t.Optional(t.Nullable(t.String())),
       }),
       auth: true,
     }
@@ -197,7 +276,11 @@ const deckRoutes = new Elysia({ prefix: "/api/decks" })
 
       const [updatedDeck] = await db
         .update(deck)
-        .set({ name: body.name })
+        .set({
+          name: body.name,
+          description: body.description ?? null,
+          subject: body.subject ?? null,
+        })
         .where(eq(deck.id, id))
         .returning();
 
@@ -209,6 +292,8 @@ const deckRoutes = new Elysia({ prefix: "/api/decks" })
       }),
       body: t.Object({
         name: t.String({ minLength: 1, maxLength: 255 }),
+        description: t.Optional(t.Nullable(t.String())),
+        subject: t.Optional(t.Nullable(t.String())),
       }),
       auth: true,
     }
@@ -2047,6 +2132,7 @@ const userRoutes = new Elysia({ prefix: "/api/user" })
         // Prepare update data
         const updateData: {
           name?: string;
+          description?: string | null | undefined;
           username?: string;
           onboardingCompleted: boolean;
           onboardingSkipped: boolean;
@@ -2060,6 +2146,11 @@ const userRoutes = new Elysia({ prefix: "/api/user" })
         // Update name if provided
         if (body.name) {
           updateData.name = body.name;
+        }
+
+        // Update description if provided
+        if (body.description) {
+          updateData.description = body.description ?? null;
         }
 
         // Update username if provided
@@ -2319,7 +2410,14 @@ const noteTypeRoutes = new Elysia({ prefix: "/api/note-types" })
       }
 
       // Build update object with only provided fields
-      const updateData: { name?: string; fields?: Array<{ name: string; type: string }> } = {};
+      const updateData: {
+        name?: string;
+        description?: string | null | undefined;
+        fields?: Array<{ name: string; type: string }>;
+      } = {};
+      if (body.description !== undefined) {
+        updateData.description = body.description ?? null;
+      }
       if (body.name !== undefined) {
         updateData.name = body.name;
       }
@@ -2420,6 +2518,391 @@ const noteTypeRoutes = new Elysia({ prefix: "/api/note-types" })
     }
   );
 
+// Admin routes - Waitlist management
+const waitlistRoutes = new Elysia({ prefix: "/api/admin/waitlist" })
+  .use(authMiddleware)
+  .use(adminMiddleware)
+  // List all waitlist entries with pagination and filtering
+  .get(
+    "/",
+    async ({ query, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const limit = query.limit ? Number(query.limit) : 50;
+      const offset = query.offset ? Number(query.offset) : 0;
+      const statusFilter = query.status as
+        | "pending"
+        | "approved"
+        | "rejected"
+        | undefined;
+
+      const conditions = [];
+      if (statusFilter) {
+        conditions.push(eq(waitlist.status, statusFilter));
+      }
+
+      const [waitlistEntries, totalCount] = await Promise.all([
+        db
+          .select()
+          .from(waitlist)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .orderBy(desc(waitlist.createdAt))
+          .limit(limit)
+          .offset(offset),
+        db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(waitlist)
+          .where(conditions.length > 0 ? and(...conditions) : undefined),
+      ]);
+
+      return {
+        entries: waitlistEntries,
+        total: Number(totalCount[0]?.count || 0),
+        limit,
+        offset,
+      };
+    },
+    {
+      query: t.Object({
+        limit: t.Optional(t.String()),
+        offset: t.Optional(t.String()),
+        status: t.Optional(
+          t.Union([
+            t.Literal("pending"),
+            t.Literal("approved"),
+            t.Literal("rejected"),
+          ])
+        ),
+      }),
+      auth: true,
+      admin: true,
+    }
+  )
+  // Approve a waitlist entry
+  .post(
+    "/:id/approve",
+    async ({ params: { id }, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [entry] = await db
+        .select()
+        .from(waitlist)
+        .where(eq(waitlist.id, id));
+
+      if (!entry) {
+        set.status = 404;
+        return { error: "Waitlist entry not found" };
+      }
+
+      const [updated] = await db
+        .update(waitlist)
+        .set({ status: "approved", updatedAt: new Date() })
+        .where(eq(waitlist.id, id))
+        .returning();
+
+      return updated;
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      auth: true,
+      admin: true,
+    }
+  )
+  // Reject a waitlist entry
+  .post(
+    "/:id/reject",
+    async ({ params: { id }, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [entry] = await db
+        .select()
+        .from(waitlist)
+        .where(eq(waitlist.id, id));
+
+      if (!entry) {
+        set.status = 404;
+        return { error: "Waitlist entry not found" };
+      }
+
+      const [updated] = await db
+        .update(waitlist)
+        .set({ status: "rejected", updatedAt: new Date() })
+        .where(eq(waitlist.id, id))
+        .returning();
+
+      return updated;
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      auth: true,
+      admin: true,
+    }
+  )
+  // Delete a waitlist entry
+  .delete(
+    "/:id",
+    async ({ params: { id }, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [entry] = await db
+        .select()
+        .from(waitlist)
+        .where(eq(waitlist.id, id));
+
+      if (!entry) {
+        set.status = 404;
+        return { error: "Waitlist entry not found" };
+      }
+
+      await db.delete(waitlist).where(eq(waitlist.id, id));
+
+      return { success: true };
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      auth: true,
+      admin: true,
+    }
+  );
+
+// Admin routes - Check admin status (lightweight endpoint for Next.js)
+const adminCheckRoute = new Elysia({ prefix: "/api/admin" })
+  .use(authMiddleware)
+  .get(
+    "/check",
+    async ({ auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { isAdmin: false, error: "Not authenticated" };
+      }
+
+      // Get user from database to check role
+      const [userData] = await db
+        .select({ role: user.role, email: user.email })
+        .from(user)
+        .where(eq(user.id, auth.user.id));
+
+      if (!userData) {
+        set.status = 404;
+        return { isAdmin: false, error: "User not found" };
+      }
+
+      const isAdmin =
+        userData?.role === "admin" ||
+        userData?.role?.toLowerCase() === "admin" ||
+        (typeof userData?.role === "string" &&
+          userData.role.toLowerCase().includes("admin")) ||
+        false;
+
+      return {
+        isAdmin,
+        role: userData.role,
+        userId: auth.user.id,
+        email: auth.user.email,
+      };
+    },
+    {
+      auth: true,
+    }
+  );
+
+// Admin routes - Statistics
+const adminStatsRoutes = new Elysia({ prefix: "/api/admin/stats" })
+  .use(authMiddleware)
+  .use(adminMiddleware)
+  // Get overview statistics
+  .get(
+    "/overview",
+    async ({ auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const [
+        totalUsers,
+        activeUsers,
+        bannedUsers,
+        totalDecks,
+        totalCards,
+        totalStudySessions,
+        pendingWaitlist,
+      ] = await Promise.all([
+        // Total users
+        db.select({ count: sql<number>`COUNT(*)` }).from(user),
+        // Active users (users with at least one session in last 30 days)
+        db
+          .select({ count: sql<number>`COUNT(DISTINCT ${user.id})` })
+          .from(user)
+          .innerJoin(session, eq(user.id, session.userId))
+          .where(
+            gte(
+              session.createdAt,
+              new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+            )
+          ),
+        // Banned users
+        db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(user)
+          .where(eq(user.banned, true)),
+        // Total decks
+        db.select({ count: sql<number>`COUNT(*)` }).from(deck),
+        // Total cards
+        db.select({ count: sql<number>`COUNT(*)` }).from(card),
+        // Total study sessions
+        db.select({ count: sql<number>`COUNT(*)` }).from(studySession),
+        // Pending waitlist entries
+        db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(waitlist)
+          .where(eq(waitlist.status, "pending")),
+      ]);
+
+      return {
+        totalUsers: Number(totalUsers[0]?.count || 0),
+        activeUsers: Number(activeUsers[0]?.count || 0),
+        bannedUsers: Number(bannedUsers[0]?.count || 0),
+        totalDecks: Number(totalDecks[0]?.count || 0),
+        totalCards: Number(totalCards[0]?.count || 0),
+        totalStudySessions: Number(totalStudySessions[0]?.count || 0),
+        pendingWaitlist: Number(pendingWaitlist[0]?.count || 0),
+      };
+    },
+    {
+      auth: true,
+      admin: true,
+    }
+  )
+  // Get activity statistics (daily/weekly/monthly)
+  .get(
+    "/activity",
+    async ({ query, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const period =
+        (query.period as "daily" | "weekly" | "monthly") || "daily";
+      const now = new Date();
+      let startDate: Date;
+
+      switch (period) {
+        case "daily":
+          startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case "weekly":
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case "monthly":
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+      }
+
+      const [newUsers, newDecks, newCards, studySessions] = await Promise.all([
+        // New users in period
+        db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(user)
+          .where(gte(user.createdAt, startDate)),
+        // New decks in period
+        db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(deck)
+          .where(gte(deck.createdAt, startDate)),
+        // New cards in period
+        db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(card)
+          .where(gte(card.createdAt, startDate)),
+        // Study sessions in period
+        db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(studySession)
+          .where(gte(studySession.startedAt, startDate)),
+      ]);
+
+      return {
+        period,
+        newUsers: Number(newUsers[0]?.count || 0),
+        newDecks: Number(newDecks[0]?.count || 0),
+        newCards: Number(newCards[0]?.count || 0),
+        studySessions: Number(studySessions[0]?.count || 0),
+      };
+    },
+    {
+      query: t.Object({
+        period: t.Optional(
+          t.Union([
+            t.Literal("daily"),
+            t.Literal("weekly"),
+            t.Literal("monthly"),
+          ])
+        ),
+      }),
+      auth: true,
+      admin: true,
+    }
+  )
+  // Get user growth statistics
+  .get(
+    "/users",
+    async ({ query, auth, set }) => {
+      if (!auth?.user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const days = query.days ? Number(query.days) : 30;
+      const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+      // Get daily user registrations
+      const dailyRegistrations = await db
+        .select({
+          date: sql<string>`DATE(${user.createdAt})`,
+          count: sql<number>`COUNT(*)`,
+        })
+        .from(user)
+        .where(gte(user.createdAt, startDate))
+        .groupBy(sql`DATE(${user.createdAt})`)
+        .orderBy(sql`DATE(${user.createdAt})`);
+
+      return {
+        days,
+        dailyRegistrations: dailyRegistrations.map((r) => ({
+          date: r.date,
+          count: Number(r.count),
+        })),
+      };
+    },
+    {
+      query: t.Object({
+        days: t.Optional(t.String()),
+      }),
+      auth: true,
+      admin: true,
+    }
+  );
+
 const app = new Elysia()
   .use(
     cors({
@@ -2448,6 +2931,9 @@ const app = new Elysia()
   .use(studyRoutes)
   .use(userRoutes)
   .use(noteTypeRoutes)
+  .use(adminCheckRoute)
+  .use(waitlistRoutes)
+  .use(adminStatsRoutes)
   // Global error handler to catch and log errors (must be after routes)
   .onError(({ error, code, set, request }) => {
     // Ignore favicon requests to reduce noise in logs

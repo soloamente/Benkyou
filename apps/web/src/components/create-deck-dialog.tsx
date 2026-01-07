@@ -105,7 +105,7 @@ export function CreateDeckDialog({
             </button>
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed transition-colors"
               disabled={isLoading || !name.trim()}
             >
               {isLoading ? (

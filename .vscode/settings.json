@@ -1,47 +1,103 @@
 {
-  "workbench.editor.customLabels.patterns": {
-    "**/app/**/{page,layout,index}.{ts,tsx}": "(${dirname})/${filename}.${extname}",
-    "**/index.{ts,tsx}": "${dirname}/index.${extname}"
+  "workbench.iconTheme": "ayu",
+  "workbench.productIconTheme": "icons-carbon",
+  "editor.cursorStyle": "line",
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+
+  // --- Typography ---
+  "editor.fontSize": 14,
+  "editor.fontFamily": "'JetBrains Mono NL','JetBrains Mono', 'Zed Mono', monospace",
+  "editor.lineHeight": 2,
+  "editor.fontWeight": "400",
+  "editor.letterSpacing": 0.5,
+  "editor.fontLigatures": true,
+
+  // --- UI Minimalism ---
+  "workbench.activityBar.location": "top",
+  "workbench.sideBar.location": "left",
+  "editor.minimap.enabled": false,
+  "editor.scrollbar.vertical": "hidden",
+  "editor.scrollbar.horizontal": "hidden",
+  "editor.overviewRulerBorder": false,
+  "editor.hideCursorInOverviewRuler": true,
+  "editor.guides.indentation": false,
+  "editor.renderLineHighlight": "none",
+  "editor.occurrenceHighlight": "off",
+  "editor.selectionHighlight": false,
+  "editor.bracketPairColorization.enabled": true,
+
+  // --- Breadcrumbs (The file path bar) ---
+  "breadcrumbs.enabled": true,
+  "breadcrumbs.icons": false,
+  "breadcrumbs.symbolPath": "off",
+
+  // --- Tab & Navigation ---
+  "workbench.editor.showTabs": "multiple",
+  "workbench.editor.tabSizing": "shrink",
+  "workbench.editor.labelFormat": "default",
+  "workbench.editor.showIcons": false,
+  "workbench.editor.navigationControl": true,
+
+  // --- Editor Behavior ---
+  "editor.lineNumbers": "on",
+  "editor.glyphMargin": false,
+  "editor.folding": false,
+  "editor.matchBrackets": "never",
+  "editor.renderWhitespace": "none",
+  "workbench.tree.indent": 16,
+  "workbench.tree.renderIndentGuides": "none",
+  "windowColors.askToColorizeRepoWhenOpened": false,
+  "window.customTitleBarVisibility": "auto",
+  "workbench.colorTheme": "Cursor Dark",
+
+  // --- COLOR CUSTOMIZATIONS ---
+  "workbench.colorCustomizations": {
+    "[Ayu Mirage Zed]": {
+      "editor.background": "#1A1A1A",
+      "editorGutter.background": "#1A1A1A",
+
+      // Breadcrumb styling to match your screenshot
+      "breadcrumb.background": "#1A1A1A",
+      "breadcrumb.foreground": "#666666",
+      "breadcrumb.focusForeground": "#999999",
+      "breadcrumb.activeSelectionForeground": "#AAAAAA",
+
+      "sideBar.background": "#141414",
+      "sideBar.border": "#141414",
+      "activityBar.background": "#141414",
+      "activityBar.border": "#141414",
+      "editorGroupHeader.tabsBackground": "#141414",
+      "editorGroupHeader.tabsBorder": "#141414",
+      "tab.activeBackground": "#141414",
+      "tab.inactiveBackground": "#141414",
+      "tab.border": "#141414",
+      "terminal.background": "#141414",
+      "panel.background": "#141414",
+      "panel.border": "#141414",
+      "statusBar.background": "#141414",
+      "statusBar.border": "#141414",
+
+      "focusBorder": "#00000000",
+      "input.border": "#00000000",
+      "input.background": "#252525",
+      "quickInput.background": "#141414",
+      "quickInput.foreground": "#CCCCCC",
+      "quickInputList.focusBackground": "#2d2d2d",
+      "quickInputTitle.background": "#141414",
+      "pickerGroup.foreground": "#575757",
+      "widget.border": "#333333",
+      "widget.shadow": "#000000aa"
+    }
   },
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnPaste": false,
-  "prettier.requireConfig": true,
-  "prettier.enable": true,
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
+
+  // --- CSS LOADER (This makes the "/" happen) ---
+  "vscode_custom_css.imports": [
+    "file:///Users/[redacted]/.vscode/zed-style.css",
+    "file:///Users/[redacted]/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.7/dist/updateHandler.js"
+  ],
+  "biome.suggestInstallingGlobally": false,
   "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[css]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
+    "editor.defaultFormatter": "biomejs.biome"
   }
 }

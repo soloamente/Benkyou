@@ -1,6 +1,6 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { username } from "better-auth/plugins";
+import { username, admin } from "better-auth/plugins";
 import * as dotenv from "dotenv";
 
 // Load environment variables from multiple possible locations
@@ -35,6 +35,7 @@ export const auth = betterAuth<BetterAuthOptions>({
   },
   plugins: [
     username(), // Add username plugin
+    admin(), // Add admin plugin for user management
   ],
   advanced: {
     defaultCookieAttributes: {
