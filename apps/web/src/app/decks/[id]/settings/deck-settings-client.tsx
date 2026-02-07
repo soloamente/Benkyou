@@ -24,9 +24,9 @@ function SettingRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2 bg-card">
-      <span className="text-sm text-foreground shrink-0">{label}</span>
-      <div className="min-w-0 flex-1 max-w-[200px]">{children}</div>
+    <div className="flex items-center justify-between gap-4 pl-6  py-2.5 pr-2.5 rounded-full bg-card">
+      <span className="font-normal! text-foreground shrink-0">{label}</span>
+      <div className="  ">{children}</div>
     </div>
   );
 }
