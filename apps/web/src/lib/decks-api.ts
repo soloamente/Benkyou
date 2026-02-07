@@ -126,6 +126,21 @@ export async function updateDeck(
   return handleResponse<Deck>(response);
 }
 
+// Update only the deck cover image (data URL or image URL string)
+export async function updateDeckCover(
+  id: string,
+  coverImage: string | null
+): Promise<Deck> {
+  const response = await fetch(`${API_BASE_URL}/api/decks/${id}/cover`, {
+    method: "PUT",
+    headers: await getAuthHeaders(),
+    credentials: "include",
+    body: JSON.stringify({ coverImage }),
+  });
+
+  return handleResponse<Deck>(response);
+}
+
 // Delete a deck
 export async function deleteDeck(id: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/decks/${id}`, {

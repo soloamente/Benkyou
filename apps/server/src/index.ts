@@ -298,6 +298,42 @@ const deckRoutes = new Elysia({ prefix: "/api/decks" })
       auth: true,
     }
   )
+  // Update only the deck cover image (e.g. after upload / data URL)
+  .put(
+    "/:id/cover",
+    async ({ params: { id }, body, auth }) => {
+      if (!auth?.user) {
+        return { error: "Unauthorized" };
+      }
+
+      const [foundDeck] = await db.select().from(deck).where(eq(deck.id, id));
+
+      if (!foundDeck) {
+        return { error: "Deck not found" };
+      }
+
+      if (foundDeck.userId !== auth.user.id) {
+        return { error: "Unauthorized" };
+      }
+
+      const [updatedDeck] = await db
+        .update(deck)
+        .set({ coverImage: body.coverImage ?? null })
+        .where(eq(deck.id, id))
+        .returning();
+
+      return updatedDeck;
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Object({
+        coverImage: t.Nullable(t.String()),
+      }),
+      auth: true,
+    }
+  )
   // Delete a deck
   .delete(
     "/:id",

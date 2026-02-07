@@ -89,7 +89,13 @@ export function SubjectCombobox({
       onChange(selectedValue);
       setInputValue(selectedValue);
     }
-    // The useEffect will close the popup when value changes
+    // Close popup: defer to next tick so it runs after Base UI's handlers and React commit
+    setTimeout(() => setIsOpen(false), 0);
+  };
+
+  // Ensure we close when Base UI requests it (e.g. on item select, escape, outside click)
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
   };
 
   return (
@@ -105,7 +111,7 @@ export function SubjectCombobox({
         autoHighlight={true}
         highlightItemOnHover={true}
         open={isOpen}
-        onOpenChange={setIsOpen}
+        onOpenChange={handleOpenChange}
         actionsRef={actionsRef}
         onItemHighlighted={(item) => {
           setHighlightedItem(item ?? null);
@@ -117,19 +123,12 @@ export function SubjectCombobox({
             placeholder={placeholder}
             autoComplete="off"
             onKeyDown={(e) => {
-              // Handle Enter key - ensure popup closes after Base UI handles selection
-              if (e.key === "Enter" && isOpen) {
-                // Let Base UI handle the selection, then close popup after a brief delay
-                setTimeout(() => {
-                  if (isOpen) {
-                    setIsOpen(false);
-                  }
-                }, 10);
+              if (e.key === "Enter" && isOpen && highlightedItem) {
+                e.preventDefault();
+                handleValueChange(highlightedItem);
               }
-              // Handle Tab key to select highlighted item (only when popup is open)
               if (e.key === "Tab" && isOpen && highlightedItem && !e.shiftKey) {
                 e.preventDefault();
-                // Select the highlighted item - this will trigger onValueChange which closes popup
                 handleValueChange(highlightedItem);
               }
             }}

@@ -6,7 +6,12 @@ import { AnimatePresence, type Variants, motion } from "motion/react";
 
 import { cn } from "@lib/utils";
 
-type InputProps = React.ComponentPropsWithRef<"input">;
+type InputProps = React.ComponentPropsWithRef<"input"> & {
+  /** Applied to the wrapper div (default Input container). */
+  className?: string;
+  /** Applied to the inner <input> so you can override padding, etc. */
+  inputClassName?: string;
+};
 
 type FieldState = "idle" | "filled";
 
@@ -14,6 +19,7 @@ export function Input({
   placeholder,
   onChange,
   className,
+  inputClassName,
   value,
   ...props
 }: InputProps) {
@@ -52,7 +58,8 @@ export function Input({
         value={value}
         className={cn(
           "peer caret-primary h-full w-full flex-1 bg-transparent px-4 py-2 outline-none placeholder:sr-only",
-          "text-primary font-sf-pro-rounded text-sm/5.5 font-normal"
+          "text-primary font-sf-pro-rounded text-sm/5.5 font-normal",
+          inputClassName
         )}
         placeholder={placeholder}
         onChange={(event) => {

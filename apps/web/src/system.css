@@ -448,13 +448,22 @@
   }
 
   a,
-  button,
+  button {
+    outline: 0;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+    }
+  }
+
+  /* input/textarea: no outline on focus – outline doesn't follow border-radius and causes
+   * fragmented “arc” artifacts. Components use box-shadow/ring for focus so it respects radius. */
   input,
   textarea {
     outline: 0;
 
     &:focus-visible {
-      outline: 2px solid var(--color-focus);
+      outline: 0;
     }
   }
 }

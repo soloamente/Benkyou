@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { auth } from "@benkyou/auth";
-
 import DeckDetail from "./deck-detail";
 
 // Extract dynamic data fetching to a separate component
@@ -66,13 +65,7 @@ async function DeckDetailContent({
     redirect("/decks");
   }
 
-  return (
-    <>
-      <div className="container mx-auto px-4 py-8 overflow-y-auto">
-        <DeckDetail deck={deck} session={session} />
-      </div>
-    </>
-  );
+  return <DeckDetail deck={deck} session={session} />;
 }
 
 // Loading fallback for Suspense boundary
